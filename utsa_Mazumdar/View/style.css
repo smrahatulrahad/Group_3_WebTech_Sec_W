@@ -1,10 +1,9 @@
-/*css for regristration*/
+/*css for sign of for user*/
 body
 {
     background-color: #f2f2f2;
     font-family: Arial;
 }
-
 .window 
 {
     width: 800px;
@@ -12,7 +11,6 @@ body
     background-color: white;
     border: 2px solid #555;
 }
-
 .header
 {
     background-color: #1685c5;
@@ -20,36 +18,30 @@ body
     padding: 10px;
     font-size: 18px;
 }
-
 .content
 {
     width: 600px;
     margin: 20px auto;
     padding: 20px;
 }
-
 h1
 {
     text-align: center;
     font-size: 28px;
 }
-
 h2
 {
     font-size: 18px;
     margin-top: 20px;
 }
-
 .account_table 
 {
     width: 100%;
 }
-
 .account_table td 
 {
     padding: 7px;
 }
-
 .account_table input 
 {
     width: 95%;
@@ -57,32 +49,26 @@ h2
     border: none;
     border-bottom: 1px solid #777;
 }
-
 .buttons 
 {
     text-align: right;
     margin-top: 20px;
 }
-
 button 
 {
     padding: 8px 25px;
     margin-left: 10px;
     border: none;
 }
-
 .back 
 {
     background-color: #ddd;
 }
-
 .next
 {
     background-color: #1685c5;
     color: white;
 }
-
-
 /*  css for login */
 
 
@@ -97,7 +83,6 @@ body
     font-family: Arial;
     margin: 0;
 }
-
 .login_window 
 {
     width: 1000px;
@@ -106,7 +91,6 @@ body
     background-color: #f8f9fa;
     border: 3px solid #16466b;
 }
-
 .login_header 
 {
     background-color: #087fc1;
@@ -115,27 +99,23 @@ body
     font-size: 15px;
     font-weight: bold;
 }
-
 .login_content 
 {
     text-align: center;
     padding-top: 65px;
 }
-
 #login_title 
 {
     font-size: 32px;
     margin: 0;
     color: #111827;
 }
-
 #login_subtitle 
 {
     font-size: 18px;
     margin-top: 2px;
     color: #26384a;
 }
-
 .login_form_box 
 {
     width: 510px;
@@ -144,12 +124,10 @@ body
     border: 1px solid #9aa5ad;
     background-color: #f8f9fa;
 }
-
 .login_table 
 {
     width: 100%;
 }
-
 .login_table td 
 {
     padding: 13px 5px;
@@ -158,7 +136,6 @@ body
     font-weight: bold;
     color: #26384a;
 }
-
 .login_table input 
 {
     width: 95%;
@@ -169,7 +146,6 @@ body
     outline: none;
     font-size: 15px;
 }
-
 .login_error 
 {
     color: red;
@@ -177,13 +153,11 @@ body
     margin: 3px 0;
     font-weight: normal;
 }
-
 .login_buttons 
 {
     text-align: center;
     margin-top: 10px;
 }
-
 .login_button,
 .signup_button 
 {
@@ -194,24 +168,20 @@ body
     color: white;
     cursor: pointer;
 }
-
 .login_button 
 {
     background-color: #087fd1;
 }
-
 .signup_button 
 {
     background-color: #149eaf;
     margin-left: 18px;
 }
-
 .user_buttons 
 {
     text-align: center;
     margin-top: 15px;
 }
-
 .user_buttons button 
 {
     border: none;
@@ -222,22 +192,18 @@ body
     color: white;
     cursor: pointer;
 }
-
 .citizen_button 
 {
     background-color: #4caf50;
 }
-
 .journalist_button 
 {
     background-color: #2196f3;
 }
-
 .police_button
 {
     background-color: #607d8b;
 }
-
 .forgot_link
 {
     display: block;
@@ -247,4 +213,144 @@ body
     font-weight: bold;
     text-decoration: none;
 }
+/* CSS for police sign up page for */
 
+/* *********************************************************************** */
+
+body
+{
+    background-color: #f2f2f2;
+    font-family: Arial;
+}
+.window_police
+{
+    width: 800px;
+    margin: 30px auto;
+    background-color: white;
+    border: 2px solid #555;
+}
+.header_police
+{
+    background-color: #1685c5;
+    color: white;
+    padding: 10px;
+    font-size: 18px;
+}
+.content_police
+{
+    width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+}
+.title_police
+{
+    text-align: center;
+    font-size: 28px;
+}
+.account_table_police
+{
+    width: 100%;
+}
+.account_table_police td
+{
+    padding: 7px;
+}
+.account_table_police input
+{
+    width: 95%;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #777;
+}
+.buttons_police
+{
+    text-align: right;
+    margin-top: 20px;
+}
+.back_police
+{
+    padding: 8px 25px;
+    margin-left: 10px;
+    border: none;
+    background-color: #ddd;
+}
+.next_police
+{
+    padding: 8px 25px;
+    margin-left: 10px;
+    border: none;
+    background-color: #1685c5;
+    color: white;
+}
+
+
+/* css for jurnalist sign up */
+
+
+/* *************************************** */
+
+body
+{
+    background-color: #f2f2f2;
+    font-family: Arial;
+}
+.window_journalist
+{
+    width: 800px;
+    margin: 30px auto;
+    background-color: white;
+    border: 2px solid #555;
+}
+.header_journalist
+{
+    background-color: #1685c5;
+    color: white;
+    padding: 10px;
+    font-size: 18px;
+}
+.content_journalist
+{
+    width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+}
+.title_journalist
+{
+    text-align: center;
+    font-size: 28px;
+}
+.journalist_table
+{
+    width: 100%;
+}
+.journalist_table td
+{
+    padding: 7px;
+}
+.journalist_table input
+{
+    width: 95%;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #777;
+}
+.buttons_journalist
+{
+    text-align: right;
+    margin-top: 20px;
+}
+.back_journalist
+{
+    background-color: #ddd;
+    padding: 8px 25px;
+    margin-left: 10px;
+    border: none;
+}
+.next_journalist
+{
+    background-color: #1685c5;
+    color: white;
+    padding: 8px 25px;
+    margin-left: 10px;
+    border: none;
+}
