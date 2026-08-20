@@ -1,0 +1,395 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: rgb(249, 250, 255);
+    color: #263238;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    height: 70px;
+    background-color: rgb(116, 154, 255);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 25px;
+}
+
+.title {
+    color: white;
+    font-size: 27px;
+    font-weight: bold;
+}
+
+
+/* SEARCH AREA */
+
+.search-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-area input {
+    width: 350px;
+    height: 38px;
+
+    border: none;
+    border-radius: 5px;
+
+    padding: 0 12px;
+
+    font-size: 15px;
+
+    outline: none;
+}
+
+.search-area button {
+    height: 38px;
+
+    padding: 0 16px;
+
+    border: none;
+    border-radius: 5px;
+
+    background-color: white;
+
+    color: rgb(54, 70, 116);
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.search-area button:hover {
+    background-color: #e9edff;
+}
+
+
+/* FILTER */
+
+.filter {
+    background-color: #dddddd !important;
+}
+
+.filter.active {
+    background-color: white !important;
+}
+
+
+/* =========================
+   MAIN PAGE
+========================= */
+
+.page-container {
+    min-height: calc(100vh - 70px);
+
+    display: flex;
+}
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    width: 230px;
+
+    background-color: rgb(236, 235, 255);
+
+    padding: 28px 22px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar div {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sidebar a {
+    display: block;
+
+    padding: 13px;
+
+    text-align: center;
+
+    text-decoration: none;
+
+    background-color: white;
+
+    color: rgb(54, 70, 116);
+
+    font-size: 15px;
+    font-weight: 600;
+
+    border-radius: 5px;
+
+    transition: 0.2s;
+}
+
+.sidebar a:hover {
+    background-color: rgb(116, 154, 255);
+    color: white;
+}
+
+
+/* LOGOUT */
+
+.sidebar .logout {
+    background-color: rgb(255, 229, 234);
+
+    color: rgb(176, 41, 64);
+
+    font-weight: bold;
+}
+
+.sidebar .logout:hover {
+    background-color: rgb(176, 41, 64);
+    color: white;
+}
+
+
+/* =========================
+   MAIN CONTENT
+========================= */
+
+.main-content {
+    flex: 1;
+
+    padding: 25px;
+
+    overflow-y: auto;
+}
+
+.welcome {
+    margin-bottom: 22px;
+}
+
+.welcome h2 {
+    color: rgb(54, 70, 116);
+
+    margin-bottom: 5px;
+}
+
+.welcome p {
+    color: #777;
+}
+
+
+/* =========================
+   POST CARD
+========================= */
+
+.post-card {
+    background-color: white;
+
+    padding: 20px;
+
+    margin-bottom: 18px;
+
+    border-radius: 8px;
+
+    border: 1px solid #e1e4ef;
+
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.06);
+
+    transition: 0.2s;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.10);
+}
+
+.post-card h3 {
+    font-size: 19px;
+
+    margin-bottom: 6px;
+
+    color: #263238;
+}
+
+
+/* OWNER */
+
+.post-owner {
+    font-size: 14px;
+
+    color: #777;
+
+    font-style: italic;
+
+    margin-bottom: 12px;
+}
+
+
+/* CONTENT */
+
+.post-content {
+    margin-top: 14px;
+
+    line-height: 1.6;
+
+    color: #444;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.status-area {
+    display: flex;
+    gap: 8px;
+}
+
+.status {
+    display: inline-block;
+
+    padding: 5px 11px;
+
+    color: white;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    border-radius: 20px;
+}
+
+
+/* Approved */
+
+.approved {
+    background-color: seagreen;
+}
+
+
+/* Pending */
+
+.pending {
+    background-color: steelblue;
+}
+
+
+/* Rejected */
+
+.rejected {
+    background-color: indianred;
+}
+
+
+/* Case */
+
+.case {
+    background-color: slateblue;
+}
+
+
+/* Deleted */
+
+.deleted {
+    background-color: indianred;
+}
+
+
+/* =========================
+   ACTION BUTTON
+========================= */
+
+.post-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: 15px;
+}
+
+.delete-btn,
+.restore-btn {
+    border: none;
+
+    padding: 9px 18px;
+
+    border-radius: 5px;
+
+    font-weight: bold;
+
+    color: white;
+
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+}
+
+.delete-btn:hover {
+    background-color: #b52b27;
+}
+
+.restore-btn {
+    background-color: #2e8b57;
+}
+
+.restore-btn:hover {
+    background-color: #247046;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width: 950px) {
+
+    .header {
+        height: auto;
+
+        flex-direction: column;
+
+        padding: 15px;
+
+        gap: 15px;
+    }
+
+    .search-area {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .search-area input {
+        width: 100%;
+    }
+
+    .page-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+
+        gap: 20px;
+    }
+
+    .sidebar div {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+}
