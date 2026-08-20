@@ -1,8 +1,22 @@
+<?php
+session_start();
+
+$emailError = isset($_SESSION["emailError"]) ? $_SESSION["emailError"] : "";
+$passwordError = isset($_SESSION["passwordError"]) ? $_SESSION["passwordError"] : "";
+$loginFailMessage = isset($_SESSION["loginFailMessage"]) ? $_SESSION["loginFailMessage"] : "";
+
+unset($_SESSION["emailError"]);
+unset($_SESSION["passwordError"]);
+unset($_SESSION["loginFailMessage"]);
+?>
+
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Sign In</title>
+    <title>CiviLens - Sign In</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="login_window">
 
@@ -12,71 +26,59 @@
 
         <div class="login_content">
             <h1 id="login_title">
-                WELCOME TO CIVICLENS
+                WELCOME TO CIVILENS
             </h1>
+
             <p id="login_subtitle">
                 Multimedia Complaint Management Tracking System
             </p>
+
             <div class="login_form_box">
-                <form method="post" action="">
+
+                <?php
+                if ($loginFailMessage != "") {
+                    echo "<p class='login_error'>$loginFailMessage</p>";
+                }
+                ?>
+
+                <form method="post" action="../Controller/loginValidation.php">
+
                     <table class="login_table">
                         <tr>
+                            <td>Email Address:</td>
                             <td>
-                                Email Address :
-                            </td>
-                            <td>
-                                <input
-                                    type="email"
-                                    id="login_email"
-                                    name="email"
-                                >
-                                <p id="email_error" class="login_error">
+                                <input type="email" name="email">
+
+                                <p class="login_error">
                                     <?php echo $emailError; ?>
                                 </p>
                             </td>
                         </tr>
 
                         <tr>
+                            <td>Password:</td>
                             <td>
-                                Password :
-                            </td>
+                                <input type="password" name="password">
 
-                            <td>
-                                <input type ="password" id="login_password"  name="password">
-        
-
-                                <p id="password_error" class="login_error">
+                                <p class="login_error">
                                     <?php echo $passwordError; ?>
                                 </p>
                             </td>
                         </tr>
-
                     </table>
 
                     <div class="login_buttons">
-
-                        <button type="submit"  id="login_button" class="login_button">
-                             Login
+                        <button type="submit" class="login_button">
+                            Login
                         </button>
 
-                        <button type="button" id="signup_button"  class="signup_button">
+                        <a href="registration.php" class="signup_button">
                             Sign Up
-                        </button>
+                        </a>
                     </div>
                 </form>
-                <div class="user_buttons">
-                    <button type="button" id="citizen_button" class="citizen_button">     
-                        Citizen
-                    </button>
-                    <button type="button" id="journalist_button" class="journalist_button"> 
-                        Journalist
-                    </button>
 
-                    <button type="button" id="police_button"  class="police_button"> 
-                        Police
-                    </button>
-                </div>
-                <a href="#forgot"id="forgot_link" class="forgot_link"> 
+                <a href="reset_password.php" class="forgot_link">
                     Forgot password?
                 </a>
             </div>
@@ -84,4 +86,3 @@
     </div>
 </body>
 </html>
-
