@@ -1,21 +1,8 @@
 <?php
 session_start();
 
-/*
-Later, after login is connected, you can use:
-
-if (!isset($_SESSION['role']) || $_SESSION['role'] != "Admin") {
-    header("Location: login.php");
-    exit();
-}
-
-$adminName = $_SESSION['name'];
-*/
-
 $adminName = "Admin";
 
-// Temporary post data.
-// Later this can come from MySQL database.
 $posts = [
     [
         "id" => 1,
@@ -27,7 +14,6 @@ $posts = [
         "case_status" => "Taken",
         "deleted" => false
     ],
-
     [
         "id" => 2,
         "title" => "Broken Street Light",
@@ -38,7 +24,6 @@ $posts = [
         "case_status" => "Pending",
         "deleted" => false
     ],
-
     [
         "id" => 3,
         "title" => "Garbage Problem",
@@ -52,25 +37,15 @@ $posts = [
 ];
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
     <title>CivicLens Admin Dashboard</title>
-
     <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
-
-<header class="header">
+<div class="header">
 
     <div class="title">
         Dashboard — Admin
@@ -78,47 +53,33 @@ $posts = [
 
     <div class="search-area">
 
-        <input
-            type="text"
-            id="searchInput"
-            placeholder="Search title, content, owner, CaseId"
-        >
+        <input type="text" id="searchInput"
+               placeholder="Search title, content, owner, CaseId">
 
-        <button onclick="searchPosts()">
-            Search
-        </button>
+        <button onclick="searchPosts()">Search</button>
 
-        <button
-            id="allButton"
-            class="filter active"
-            onclick="showAll()">
+        <button id="allButton"
+                class="filter active"
+                onclick="showAll()">
             All
         </button>
 
-        <button
-            id="trashButton"
-            class="filter"
-            onclick="showTrash()">
+        <button id="trashButton"
+                class="filter"
+                onclick="showTrash()">
             Trash
         </button>
 
-        <button onclick="refreshPage()">
-            Refresh
-        </button>
+        <button onclick="refreshPage()">Refresh</button>
 
     </div>
 
-</header>
+</div>
 
-
-<!-- ================= PAGE ================= -->
 
 <div class="page-container">
 
-
-    <!-- ================= SIDEBAR ================= -->
-
-    <aside class="sidebar">
+    <div class="sidebar">
 
         <div>
 
@@ -144,23 +105,19 @@ $posts = [
 
         </div>
 
-
         <a href="logout.php" class="logout">
             Logout
         </a>
 
-    </aside>
+    </div>
 
 
-
-    <!-- ================= MAIN CONTENT ================= -->
-
-    <main class="main-content">
+    <div class="main-content">
 
         <div class="welcome">
 
             <h2>
-                Welcome, <?php echo htmlspecialchars($adminName); ?>
+                Welcome, <?php echo $adminName; ?>
             </h2>
 
             <p>
@@ -170,145 +127,92 @@ $posts = [
         </div>
 
 
-        <!-- POSTS -->
-
         <div id="postContainer">
 
-            <?php foreach ($posts as $post): ?>
+            <?php foreach ($posts as $post) { ?>
 
-                <div
-                    class="post-card"
-
-                    data-id="<?php echo $post['id']; ?>"
-
-                    data-deleted="<?php
-                        echo $post['deleted'] ? 'true' : 'false';
-                    ?>"
-                >
+                <div class="post-card"
+                     data-id="<?php echo $post["id"]; ?>"
+                     data-deleted="<?php echo $post["deleted"] ? "true" : "false"; ?>">
 
                     <h3>
-                        <?php
-                        echo htmlspecialchars($post['title']);
-                        ?>
+                        <?php echo $post["title"]; ?>
                     </h3>
 
-
                     <p class="post-owner">
-
-                        By:
-                        <?php
-                        echo htmlspecialchars($post['owner']);
-                        ?>
-
+                        By: <?php echo $post["owner"]; ?>
                         •
-
-                        <?php
-                        echo htmlspecialchars($post['date']);
-                        ?>
-
+                        <?php echo $post["date"]; ?>
                     </p>
 
-
-                    <!-- STATUS -->
 
                     <div class="status-area">
 
                         <?php
-                        $statusClass =
-                            strtolower($post['status']);
+                        $statusClass = strtolower($post["status"]);
                         ?>
 
-                        <span
-                            class="status <?php echo $statusClass; ?>"
-                        >
-                            <?php
-                            echo htmlspecialchars($post['status']);
-                            ?>
+                        <span class="status <?php echo $statusClass; ?>">
+                            <?php echo $post["status"]; ?>
                         </span>
 
 
-                        <?php
-                        if (!empty($post['case_status'])):
-                        ?>
+                        <?php if ($post["case_status"] != "") { ?>
 
                             <span class="status case">
-
-                                <?php
-                                echo htmlspecialchars(
-                                    $post['case_status']
-                                );
-                                ?>
-
+                                <?php echo $post["case_status"]; ?>
                             </span>
 
-                        <?php endif; ?>
+                        <?php } ?>
 
 
-                        <?php
-                        if ($post['deleted']):
-                        ?>
+                        <?php if ($post["deleted"] == true) { ?>
 
                             <span class="status deleted">
                                 Trash
                             </span>
 
-                        <?php endif; ?>
+                        <?php } ?>
 
                     </div>
 
 
-                    <!-- CONTENT -->
-
                     <p class="post-content">
-
-                        <?php
-                        echo htmlspecialchars(
-                            $post['content']
-                        );
-                        ?>
-
+                        <?php echo $post["content"]; ?>
                     </p>
 
 
-                    <!-- ACTION -->
-
                     <div class="post-actions">
 
-                        <?php if ($post['deleted']): ?>
+                        <?php if ($post["deleted"] == true) { ?>
 
-                            <button
-                                class="restore-btn"
-                                onclick="restorePost(this)"
-                            >
+                            <button class="restore-btn"
+                                    onclick="restorePost(this)">
                                 Restore
                             </button>
 
-                        <?php else: ?>
+                        <?php } else { ?>
 
-                            <button
-                                class="delete-btn"
-                                onclick="deletePost(this)"
-                            >
+                            <button class="delete-btn"
+                                    onclick="deletePost(this)">
                                 Delete
                             </button>
 
-                        <?php endif; ?>
+                        <?php } ?>
 
                     </div>
 
                 </div>
 
-            <?php endforeach; ?>
+            <?php } ?>
 
         </div>
 
-    </main>
+    </div>
 
 </div>
-
 
 <script src="admin.js"></script>
 
 </body>
-
 </html>

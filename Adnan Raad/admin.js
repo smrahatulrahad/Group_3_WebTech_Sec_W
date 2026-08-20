@@ -3,52 +3,33 @@ let currentView = "all";
 
 function searchPosts() {
 
-    const search =
-        document
-        .getElementById("searchInput")
-        .value
-        .toLowerCase();
+    let search = document.getElementById("searchInput").value.toLowerCase();
 
-    const posts =
-        document.querySelectorAll(".post-card");
+    let posts = document.querySelectorAll(".post-card");
 
 
     posts.forEach(function(post) {
 
-        const text =
-            post.innerText.toLowerCase();
+        let text = post.innerText.toLowerCase();
 
-        const deleted =
-            post.dataset.deleted === "true";
+        let deleted = post.dataset.deleted == "true";
 
-
-        let correctView = false;
+        let show = false;
 
 
-        if (currentView === "all") {
-
-            correctView = !deleted;
-
+        if (currentView == "all") {
+            show = !deleted;
         }
         else {
-
-            correctView = deleted;
-
+            show = deleted;
         }
 
 
-        if (
-            text.includes(search) &&
-            correctView
-        ) {
-
+        if (text.includes(search) && show) {
             post.style.display = "block";
-
         }
         else {
-
             post.style.display = "none";
-
         }
 
     });
@@ -56,78 +37,50 @@ function searchPosts() {
 }
 
 
-
 function showAll() {
 
     currentView = "all";
 
+    document.getElementById("allButton").classList.add("active");
 
-    document
-        .getElementById("allButton")
-        .classList.add("active");
-
-
-    document
-        .getElementById("trashButton")
-        .classList.remove("active");
-
+    document.getElementById("trashButton").classList.remove("active");
 
     searchPosts();
-
 }
-
 
 
 function showTrash() {
 
     currentView = "trash";
 
+    document.getElementById("trashButton").classList.add("active");
 
-    document
-        .getElementById("trashButton")
-        .classList.add("active");
-
-
-    document
-        .getElementById("allButton")
-        .classList.remove("active");
-
+    document.getElementById("allButton").classList.remove("active");
 
     searchPosts();
-
 }
-
 
 
 function refreshPage() {
 
-    document
-        .getElementById("searchInput")
-        .value = "";
+    document.getElementById("searchInput").value = "";
 
     currentView = "all";
 
-
     showAll();
-
 }
-
 
 
 function deletePost(button) {
 
-    const answer =
-        confirm("Move this post to trash?");
+    let answer = confirm("Move this post to trash?");
 
-
-    if (!answer) {
+    if (answer == false) {
         return;
     }
 
 
-    const post =
-        button.closest(".post-card");
-
+    let post = button.closest(".post-card");
 
     post.dataset.deleted = "true";
 
@@ -136,106 +89,63 @@ function deletePost(button) {
 
     button.className = "restore-btn";
 
-    button.setAttribute(
-        "onclick",
-        "restorePost(this)"
-    );
+    button.setAttribute("onclick", "restorePost(this)");
 
 
-    // Add trash label
+    let statusArea = post.querySelector(".status-area");
 
-    const statusArea =
-        post.querySelector(".status-area");
+    let trash = document.createElement("span");
 
+    trash.className = "status deleted";
 
-    if (!post.querySelector(".deleted")) {
+    trash.innerText = "Trash";
 
-        const trash =
-            document.createElement("span");
-
-        trash.className =
-            "status deleted";
-
-        trash.innerText =
-            "Trash";
-
-        statusArea.appendChild(trash);
-
-    }
+    statusArea.appendChild(trash);
 
 
     searchPosts();
-
 }
-
 
 
 function restorePost(button) {
 
-    const answer =
-        confirm("Restore this post?");
+    let answer = confirm("Restore this post?");
 
-
-    if (!answer) {
+    if (answer == false) {
         return;
     }
 
 
-    const post =
-        button.closest(".post-card");
-
+    let post = button.closest(".post-card");
 
     post.dataset.deleted = "false";
 
 
-    button.innerText =
-        "Delete";
+    button.innerText = "Delete";
+
+    button.className = "delete-btn";
+
+    button.setAttribute("onclick", "deletePost(this)");
 
 
-    button.className =
-        "delete-btn";
+    let trash = post.querySelector(".deleted");
 
-
-    button.setAttribute(
-        "onclick",
-        "deletePost(this)"
-    );
-
-
-    const trash =
-        post.querySelector(".deleted");
-
-
-    if (trash) {
-
+    if (trash != null) {
         trash.remove();
-
     }
 
 
     searchPosts();
-
 }
 
 
-/* Press Enter for search */
+document.getElementById("searchInput").addEventListener("keydown", function(event) {
 
-document
-    .getElementById("searchInput")
-    .addEventListener(
-        "keydown",
-        function(event) {
+    if (event.key == "Enter") {
+        searchPosts();
+    }
 
-            if (event.key === "Enter") {
+});
 
-                searchPosts();
-
-            }
-
-        }
-    );
-
-
-/* Initial view */
 
 showAll();
