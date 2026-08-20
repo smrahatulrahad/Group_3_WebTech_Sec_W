@@ -1,0 +1,434 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f6f8;
+    color: #243444;
+}
+
+
+/* Header */
+
+.header {
+    height: 72px;
+    background-color: #1976d2;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 25px;
+}
+
+.header h1 {
+    font-size: 24px;
+    margin-bottom: 3px;
+}
+
+.header p {
+    font-size: 12px;
+    color: #dceeff;
+}
+
+.backTop {
+    text-decoration: none;
+    background-color: white;
+    color: #1976d2;
+
+    padding: 11px 16px;
+    border-radius: 5px;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+/* Page */
+
+.pageContainer {
+    min-height: calc(100vh - 72px);
+
+    display: grid;
+    grid-template-columns: 235px minmax(0, 1fr);
+}
+
+
+/* Sidebar */
+
+.sidebar {
+    background-color: white;
+    border-right: 1px solid #dde3e8;
+
+    padding: 20px 15px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.userInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 5px 5px 20px;
+
+    border-bottom: 1px solid #e2e6ea;
+    margin-bottom: 15px;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    background-color: #e3f0fb;
+    color: #1976d2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.userInfo small {
+    display: block;
+    color: #74808a;
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+.userInfo strong {
+    font-size: 14px;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu a {
+    padding: 11px 12px;
+
+    border-radius: 5px;
+
+    text-decoration: none;
+    color: #34495e;
+
+    font-size: 14px;
+}
+
+.menu a:hover {
+    background-color: #eef5fb;
+    color: #1976d2;
+}
+
+.menu a.active {
+    background-color: #e5f1fc;
+    color: #1976d2;
+    font-weight: bold;
+}
+
+.logout {
+    margin-top: auto;
+
+    text-decoration: none;
+    text-align: center;
+
+    padding: 10px;
+
+    border: 1px solid #e3c8c8;
+    border-radius: 5px;
+
+    color: #a12d2d;
+
+    font-size: 13px;
+    font-weight: bold;
+}
+
+
+/* Main */
+
+.mainContent {
+    padding: 28px 32px 40px;
+    width: 100%;
+}
+
+.pageTitle {
+    margin-bottom: 20px;
+}
+
+.pageTitle h2 {
+    font-size: 23px;
+    margin-bottom: 5px;
+}
+
+.pageTitle p {
+    color: #6e7b86;
+    font-size: 13px;
+}
+
+
+/* Two columns */
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 22px;
+    align-items: start;
+}
+
+
+/* Pending list */
+
+.pendingList,
+.editSection {
+    background-color: white;
+
+    border: 1px solid #d6dde3;
+    border-radius: 7px;
+
+    padding: 20px;
+}
+
+.pendingList > h3,
+.editSection > h3 {
+    font-size: 18px;
+
+    padding-bottom: 13px;
+    margin-bottom: 15px;
+
+    border-bottom: 1px solid #e3e8ec;
+}
+
+.postItem {
+    padding: 16px;
+
+    border: 1px solid #d7dee4;
+    border-radius: 6px;
+
+    margin-bottom: 14px;
+}
+
+.emergencyItem {
+    border-color: #e9aaaa;
+    background-color: #fffafa;
+}
+
+.postTop {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+
+    margin-bottom: 10px;
+}
+
+.postTop h4 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.postTop p {
+    color: #7a8791;
+    font-size: 11px;
+}
+
+.normalBadge,
+.emergencyBadge {
+    height: fit-content;
+
+    padding: 4px 7px;
+    border-radius: 4px;
+
+    font-size: 10px;
+}
+
+.normalBadge {
+    background-color: #edf3f7;
+    color: #536573;
+}
+
+.emergencyBadge {
+    background-color: #fde6e6;
+    border: 1px solid #efbbbb;
+    color: #aa2525;
+}
+
+.shortText {
+    color: #556570;
+    font-size: 13px;
+    line-height: 1.5;
+
+    margin-bottom: 14px;
+}
+
+.editButton {
+    display: inline-block;
+
+    padding: 8px 12px;
+
+    text-decoration: none;
+
+    background-color: #1976d2;
+    color: white;
+
+    border-radius: 4px;
+
+    font-size: 12px;
+}
+
+
+/* Editor */
+
+.editSection form {
+    display: flex;
+    flex-direction: column;
+}
+
+.editSection label {
+    font-size: 13px;
+    font-weight: bold;
+
+    margin-bottom: 6px;
+}
+
+.editSection input,
+.editSection select,
+.editSection textarea {
+    width: 100%;
+
+    border: 1px solid #ccd5dc;
+    border-radius: 5px;
+
+    padding: 10px;
+
+    margin-bottom: 15px;
+
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+
+    outline: none;
+}
+
+.editSection input:focus,
+.editSection select:focus,
+.editSection textarea:focus {
+    border-color: #1976d2;
+}
+
+.editSection input[readonly] {
+    background-color: #f4f6f8;
+    color: #6e7b86;
+}
+
+.editSection textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.formButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.saveButton {
+    border: none;
+
+    background-color: #2e8b57;
+    color: white;
+
+    padding: 10px 15px;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+}
+
+.discardButton {
+    text-decoration: none;
+
+    background-color: #e8ecef;
+    color: #40515d;
+
+    padding: 10px 15px;
+
+    border-radius: 5px;
+
+    font-size: 13px;
+}
+
+.emptyEditor {
+    min-height: 300px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    color: #75838e;
+}
+
+.emptyEditor h4 {
+    color: #41515d;
+    margin-bottom: 7px;
+}
+
+.emptyEditor p {
+    max-width: 320px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* Responsive */
+
+@media (max-width: 900px) {
+
+    .pageContainer {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        border-right: none;
+        border-bottom: 1px solid #dde3e8;
+    }
+
+    .logout {
+        margin-top: 20px;
+    }
+
+    .contentGrid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .header {
+        height: auto;
+        min-height: 72px;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .mainContent {
+        padding: 20px 14px 30px;
+    }
+
+    .postTop {
+        flex-direction: column;
+    }
+
+}

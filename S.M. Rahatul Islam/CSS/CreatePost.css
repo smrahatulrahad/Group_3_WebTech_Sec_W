@@ -1,0 +1,511 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f6f8;
+    color: #243444;
+}
+
+
+/* Header */
+
+.header {
+    height: 72px;
+
+    background-color: #1976d2;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 25px;
+}
+
+
+.header h1 {
+    font-size: 24px;
+    margin-bottom: 3px;
+}
+
+
+.header p {
+    font-size: 12px;
+    color: #dceeff;
+}
+
+
+.backTop {
+    text-decoration: none;
+
+    background-color: white;
+    color: #1976d2;
+
+    padding: 11px 16px;
+
+    border-radius: 5px;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+/* Page */
+
+.pageContainer {
+    min-height: calc(100vh - 72px);
+
+    display: grid;
+
+    grid-template-columns: 235px minmax(0, 1fr);
+}
+
+
+/* Sidebar */
+
+.sidebar {
+    background-color: white;
+
+    border-right: 1px solid #dde3e8;
+
+    padding: 20px 15px;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+.userInfo {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 5px 5px 20px;
+
+    border-bottom: 1px solid #e2e6ea;
+
+    margin-bottom: 15px;
+}
+
+
+.avatar {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    background-color: #e3f0fb;
+    color: #1976d2;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: bold;
+}
+
+
+.userInfo small {
+    display: block;
+
+    color: #74808a;
+
+    font-size: 11px;
+
+    margin-bottom: 3px;
+}
+
+
+.userInfo strong {
+    display: block;
+
+    font-size: 14px;
+}
+
+
+/* Menu */
+
+.menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.menu a {
+    padding: 11px 12px;
+
+    border-radius: 5px;
+
+    text-decoration: none;
+
+    color: #34495e;
+
+    font-size: 14px;
+}
+
+
+.menu a:hover {
+    background-color: #eef5fb;
+
+    color: #1976d2;
+}
+
+
+.menu a.active {
+    background-color: #e5f1fc;
+
+    color: #1976d2;
+
+    font-weight: bold;
+}
+
+
+.logout {
+    margin-top: auto;
+
+    padding: 10px;
+
+    text-align: center;
+
+    border: 1px solid #e3c8c8;
+
+    border-radius: 5px;
+
+    text-decoration: none;
+
+    color: #a12d2d;
+
+    font-size: 13px;
+    font-weight: bold;
+}
+
+
+/* Main */
+
+.mainContent {
+    width: 100%;
+
+    padding: 28px 32px 40px;
+}
+
+
+.pageTitle {
+    margin-bottom: 20px;
+}
+
+
+.pageTitle h2 {
+    font-size: 23px;
+
+    margin-bottom: 5px;
+}
+
+
+.pageTitle p {
+    color: #6e7b86;
+
+    font-size: 13px;
+}
+
+
+/* Form Card */
+
+.formCard {
+    width: 100%;
+
+    max-width: 900px;
+
+    background-color: white;
+
+    border: 1px solid #d6dde3;
+
+    border-radius: 7px;
+
+    padding: 24px;
+}
+
+
+/* Form */
+
+.formGroup {
+    margin-bottom: 18px;
+}
+
+
+.formGroup label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 13px;
+    font-weight: bold;
+}
+
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+    width: 100%;
+
+    padding: 11px 12px;
+
+    border: 1px solid #cbd4dc;
+
+    border-radius: 5px;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    font-size: 13px;
+
+    outline: none;
+
+    background-color: white;
+}
+
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+    border-color: #1976d2;
+}
+
+
+.formGroup textarea {
+    min-height: 140px;
+
+    resize: vertical;
+}
+
+
+.formGroup small {
+    display: block;
+
+    margin-top: 6px;
+
+    color: #7a8791;
+
+    font-size: 11px;
+}
+
+
+/* Section headings */
+
+.locationTitle,
+.mediaTitle {
+    padding-top: 5px;
+
+    margin-top: 5px;
+    margin-bottom: 15px;
+
+    border-top: 1px solid #e4e9ed;
+}
+
+
+.locationTitle h3,
+.mediaTitle h3 {
+    margin-top: 18px;
+
+    margin-bottom: 4px;
+
+    font-size: 16px;
+}
+
+
+.locationTitle p,
+.mediaTitle p {
+    color: #78858f;
+
+    font-size: 12px;
+}
+
+
+/* Location */
+
+.locationGrid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 0 18px;
+}
+
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+
+/* Anonymous */
+
+.anonymousBox {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 6px;
+}
+
+
+.anonymousBox input {
+    width: 16px;
+    height: 16px;
+}
+
+
+.anonymousBox label {
+    font-size: 13px;
+}
+
+
+.emergencyNote {
+    color: #a64a4a;
+
+    font-size: 11px;
+
+    margin-bottom: 20px;
+}
+
+
+/* Media */
+
+.mediaGrid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 18px;
+}
+
+
+.formGroup input[type="file"] {
+    padding: 9px;
+
+    background-color: #f8fafb;
+}
+
+
+/* Buttons */
+
+.formButtons {
+    display: flex;
+
+    gap: 10px;
+
+    padding-top: 5px;
+}
+
+
+.createButton {
+    border: none;
+
+    background-color: #1976d2;
+    color: white;
+
+    padding: 11px 20px;
+
+    border-radius: 5px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+}
+
+
+.createButton:hover {
+    background-color: #1565b5;
+}
+
+
+.cancelButton {
+    text-decoration: none;
+
+    background-color: #e8ecef;
+    color: #40515d;
+
+    padding: 11px 20px;
+
+    border-radius: 5px;
+
+    font-size: 13px;
+}
+
+
+/* Responsive */
+
+@media (max-width: 900px) {
+
+    .pageContainer {
+        grid-template-columns: 1fr;
+    }
+
+
+    .sidebar {
+        border-right: none;
+
+        border-bottom: 1px solid #dde3e8;
+    }
+
+
+    .logout {
+        margin-top: 20px;
+    }
+
+
+    .formCard {
+        max-width: none;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .header {
+        height: auto;
+
+        min-height: 72px;
+
+        padding: 15px;
+
+        gap: 15px;
+    }
+
+
+    .mainContent {
+        padding: 20px 14px 30px;
+    }
+
+
+    .locationGrid,
+    .mediaGrid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .fullWidth {
+        grid-column: auto;
+    }
+
+
+    .formButtons {
+        flex-direction: column;
+    }
+
+
+    .createButton,
+    .cancelButton {
+        text-align: center;
+    }
+
+}

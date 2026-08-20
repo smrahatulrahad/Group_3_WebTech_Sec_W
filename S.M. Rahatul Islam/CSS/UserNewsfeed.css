@@ -1,0 +1,713 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f6f8;
+    color: #243444;
+}
+
+
+/* Header */
+
+.header {
+    width: 100%;
+    min-height: 72px;
+    background-color: #1976d2;
+
+    display: grid;
+    grid-template-columns: 220px minmax(300px, 1fr) auto;
+
+    align-items: center;
+
+    gap: 25px;
+
+    padding: 10px 25px;
+
+    color: white;
+}
+
+
+.brand h1 {
+    font-size: 24px;
+    margin-bottom: 3px;
+}
+
+
+.brand p {
+    font-size: 12px;
+    color: #dceeff;
+}
+
+
+/* Search */
+
+.searchBox {
+    width: 100%;
+    display: flex;
+}
+
+
+.searchBox input {
+    width: 100%;
+    height: 42px;
+
+    padding: 0 14px;
+
+    border: 1px solid #d1d8de;
+    border-right: none;
+
+    border-radius: 6px 0 0 6px;
+
+    outline: none;
+
+    font-size: 14px;
+}
+
+
+.searchBox button {
+    height: 42px;
+
+    padding: 0 22px;
+
+    border: 1px solid #d1d8de;
+
+    background-color: white;
+
+    border-radius: 0 6px 6px 0;
+
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+
+.searchBox button:hover {
+    background-color: #f2f2f2;
+}
+
+
+/* Header buttons */
+
+.headerButtons {
+    display: flex;
+    gap: 10px;
+}
+
+
+.headerButtons a {
+    padding: 12px 19px;
+
+    min-width: 100px;
+
+    text-align: center;
+
+    text-decoration: none;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+}
+
+
+.createPost {
+    background-color: white;
+    color: #1976d2;
+
+    font-weight: bold;
+}
+
+
+.refreshButton {
+    background-color: #e5f1fc;
+    color: #155d9d;
+}
+
+
+/* Main page */
+
+.pageContainer {
+    width: 100%;
+
+    min-height: calc(100vh - 72px);
+
+    display: grid;
+
+    grid-template-columns: 235px minmax(0, 1fr);
+}
+
+
+/* Sidebar */
+
+.sidebar {
+    background-color: white;
+
+    border-right: 1px solid #dde3e8;
+
+    padding: 20px 15px;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+.userInfo {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 5px 5px 20px;
+
+    margin-bottom: 12px;
+
+    border-bottom: 1px solid #e2e6ea;
+}
+
+
+.avatar {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 50%;
+
+    background-color: #e3f0fb;
+
+    color: #1976d2;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+
+    font-weight: bold;
+}
+
+
+.userInfo small {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #74808a;
+
+    font-size: 11px;
+}
+
+
+.userInfo strong {
+    font-size: 14px;
+}
+
+
+/* Sidebar Menu */
+
+.menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.menu > a,
+.menu summary {
+    display: block;
+
+    padding: 11px 12px;
+
+    border-radius: 5px;
+
+    text-decoration: none;
+
+    color: #34495e;
+
+    font-size: 14px;
+}
+
+
+.menu > a:hover,
+.menu summary:hover {
+    background-color: #eef5fb;
+
+    color: #1976d2;
+}
+
+
+.menu > a.active {
+    background-color: #e5f1fc;
+
+    color: #1976d2;
+
+    font-weight: bold;
+}
+
+
+.menu details {
+    width: 100%;
+}
+
+
+.menu summary {
+    cursor: pointer;
+
+    list-style: none;
+}
+
+
+.menu summary::-webkit-details-marker {
+    display: none;
+}
+
+
+.menu summary::after {
+    content: "▾";
+
+    float: right;
+
+    color: #79848d;
+}
+
+
+.menu details[open] summary::after {
+    content: "▴";
+}
+
+
+.menu .subMenu {
+    display: block;
+
+    padding: 9px 12px 9px 28px;
+
+    text-decoration: none;
+
+    color: #5c6974;
+
+    border-radius: 5px;
+
+    font-size: 13px;
+}
+
+
+.menu .subMenu:hover {
+    background-color: #f2f6f9;
+
+    color: #1976d2;
+}
+
+
+/* Logout */
+
+.logout {
+    margin-top: auto;
+
+    padding: 10px;
+
+    text-align: center;
+
+    border: 1px solid #e3c8c8;
+
+    border-radius: 5px;
+
+    text-decoration: none;
+
+    color: #a12d2d;
+
+    font-size: 13px;
+
+    font-weight: bold;
+}
+
+
+.logout:hover {
+    background-color: #fff5f5;
+}
+
+
+/* Main Feed */
+
+.mainContent {
+    width: 100%;
+
+    min-width: 0;
+
+    padding: 28px 32px 40px;
+}
+
+
+/* Feed heading */
+
+.feedHeader {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 18px;
+}
+
+
+.feedHeader h2 {
+    font-size: 23px;
+
+    margin-bottom: 5px;
+
+    color: #243444;
+}
+
+
+.feedHeader p {
+    font-size: 13px;
+
+    color: #6e7b86;
+}
+
+
+.postCount {
+    background-color: #e7edf2;
+
+    color: #53616c;
+
+    padding: 6px 12px;
+
+    border-radius: 15px;
+
+    font-size: 12px;
+}
+
+
+/* Search information */
+
+.searchMessage {
+    width: 100%;
+
+    padding: 11px 14px;
+
+    margin-bottom: 15px;
+
+    border: 1px solid #d4e4f2;
+
+    border-radius: 6px;
+
+    background-color: #eef6fc;
+
+    font-size: 13px;
+}
+
+
+.searchMessage a {
+    margin-left: 12px;
+
+    color: #1976d2;
+}
+
+
+/* Post */
+
+.postCard {
+    width: 100%;
+
+    background-color: white;
+
+    border: 1px solid #d6dde3;
+
+    border-radius: 7px;
+
+    padding: 20px 22px;
+
+    margin-bottom: 16px;
+
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+
+.postCard:hover {
+    border-color: #bdc8d1;
+}
+
+
+.emergencyPost {
+    background-color: #fffafa;
+
+    border-color: #e88a8a;
+}
+
+
+/* Post title */
+
+.postHeading {
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+
+.postHeading h3 {
+    font-size: 19px;
+
+    color: #243444;
+
+    line-height: 1.35;
+}
+
+
+.postInformation {
+    margin-top: 6px;
+
+    font-size: 12px;
+
+    color: #788692;
+}
+
+
+.postInformation span {
+    margin: 0 6px;
+}
+
+
+/* Emergency */
+
+.emergencyBadge {
+    flex-shrink: 0;
+
+    padding: 5px 9px;
+
+    border: 1px solid #efbbbb;
+
+    border-radius: 4px;
+
+    background-color: #fde6e6;
+
+    color: #aa2525;
+
+    font-size: 10px;
+
+    font-weight: bold;
+}
+
+
+/* Activity */
+
+.activity {
+    display: inline-block;
+
+    margin-top: 11px;
+
+    padding: 5px 9px;
+
+    border-radius: 4px;
+
+    background-color: #edf3f7;
+
+    color: #526573;
+
+    font-size: 11px;
+}
+
+
+/* Post content */
+
+.postContent {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 1fr) 190px;
+
+    align-items: start;
+
+    gap: 25px;
+
+    margin-top: 15px;
+}
+
+
+.postContent > p {
+    font-size: 14px;
+
+    line-height: 1.6;
+
+    color: #465762;
+}
+
+
+/* Media */
+
+.mediaBox {
+    width: 190px;
+
+    min-height: 105px;
+
+    border: 1px dashed #b8c3cc;
+
+    border-radius: 6px;
+
+    background-color: #f8fafb;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    color: #71808b;
+
+    font-size: 12px;
+}
+
+
+.mediaBox button {
+    padding: 6px 11px;
+
+    border: 1px solid #c7d0d7;
+
+    border-radius: 4px;
+
+    background-color: white;
+
+    color: #405462;
+
+    cursor: pointer;
+}
+
+
+/* Empty result */
+
+.noPosts {
+    width: 100%;
+
+    padding: 50px 20px;
+
+    background-color: white;
+
+    border: 1px solid #d6dde3;
+
+    border-radius: 7px;
+
+    text-align: center;
+}
+
+
+.noPosts h3 {
+    margin-bottom: 7px;
+
+    color: #34495e;
+}
+
+
+.noPosts p {
+    color: #72808a;
+
+    font-size: 13px;
+}
+
+
+/* Tablet */
+
+@media (max-width: 900px) {
+
+    .header {
+        grid-template-columns: 1fr auto;
+    }
+
+
+    .searchBox {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+
+    .pageContainer {
+        grid-template-columns: 1fr;
+    }
+
+
+    .sidebar {
+        border-right: none;
+        border-bottom: 1px solid #dde3e8;
+    }
+
+
+    .logout {
+        margin-top: 20px;
+    }
+
+
+    .mainContent {
+        padding: 22px 20px 35px;
+    }
+
+}
+
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .header {
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 10px;
+    }
+
+
+    .headerButtons {
+        justify-content: flex-start;
+    }
+
+
+    .feedHeader {
+        align-items: flex-start;
+    }
+
+
+    .postContent {
+        grid-template-columns: 1fr;
+    }
+
+
+    .mediaBox {
+        width: 100%;
+    }
+
+
+    .postHeading {
+        display: block;
+    }
+
+
+    .emergencyBadge {
+        display: inline-block;
+
+        margin-top: 10px;
+    }
+
+
+    .mainContent {
+        padding: 18px 14px 30px;
+    }
+
+}
