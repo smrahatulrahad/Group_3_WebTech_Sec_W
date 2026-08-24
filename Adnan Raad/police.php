@@ -78,15 +78,18 @@ $posts = [
 
     </div>
 
-
     <div class="header-right">
 
         <span class="officer-name">
             <?php echo $policeName; ?>
         </span>
 
-        <a href="police_profile.php" class="profile-btn">
+        <a href="Profile.php" class="profile-btn">
             Profile
+        </a>
+
+        <a href="ShowCases.php" class="show-cases-btn">
+            Show Cases
         </a>
 
         <a href="logout.php" class="logout-btn">
@@ -99,7 +102,6 @@ $posts = [
 
 
 <div class="main-content">
-
 
     <div class="feed-title">
 
@@ -114,13 +116,6 @@ $posts = [
             </p>
 
         </div>
-
-        <button class="show-cases-btn"
-                onclick="window.location.href='case_status.php'">
-
-            Show Cases
-
-        </button>
 
     </div>
 
@@ -158,9 +153,7 @@ $posts = [
 
     <div id="postContainer">
 
-
         <?php foreach ($posts as $post) { ?>
-
 
             <?php
 
@@ -172,12 +165,10 @@ $posts = [
 
             ?>
 
-
             <div class="post-card <?php echo $emergencyClass; ?>"
                  data-status="<?php echo $post["status"]; ?>"
                  data-emergency="<?php echo $post["emergency"] ? "true" : "false"; ?>"
                  data-taken="<?php echo $post["taken_by"]; ?>">
-
 
                 <div class="post-header">
 
@@ -226,13 +217,11 @@ $posts = [
 
                 <div class="status-container">
 
-
                     <?php if ($post["status"] == "Resolved") { ?>
 
                         <span class="case-status resolved">
                             Resolved
                         </span>
-
 
                     <?php } elseif ($post["taken_by"] == "me") { ?>
 
@@ -240,13 +229,11 @@ $posts = [
                             In Progress (You)
                         </span>
 
-
                     <?php } elseif ($post["taken_by"] == "other") { ?>
 
                         <span class="case-status taken">
                             Taken by another officer
                         </span>
-
 
                     <?php } else { ?>
 
@@ -256,29 +243,23 @@ $posts = [
 
                     <?php } ?>
 
-
                 </div>
 
 
                 <div class="actions">
 
-
                     <?php if ($post["taken_by"] == "me") { ?>
 
                         <button class="take-btn"
                                 onclick="toggleCase(this)">
-
                             Release Case
-
                         </button>
 
                     <?php } else { ?>
 
                         <button class="take-btn"
                                 onclick="toggleCase(this)">
-
                             Take Case
-
                         </button>
 
                     <?php } ?>
@@ -300,9 +281,7 @@ $posts = [
                         <button class="resolve-btn"
                                 onclick="toggleResolved(this)"
                                 <?php echo $disabled; ?>>
-
                             Unmark Resolved
-
                         </button>
 
                     <?php } else { ?>
@@ -310,22 +289,16 @@ $posts = [
                         <button class="resolve-btn"
                                 onclick="toggleResolved(this)"
                                 <?php echo $disabled; ?>>
-
                             Mark Resolved
-
                         </button>
 
                     <?php } ?>
 
-
                 </div>
-
 
             </div>
 
-
         <?php } ?>
-
 
     </div>
 
@@ -333,7 +306,6 @@ $posts = [
     <div id="noResult" class="no-result">
         No cases found.
     </div>
-
 
 </div>
 
@@ -343,10 +315,6 @@ $posts = [
     <span>
         CivicLens Police Portal
     </span>
-
-    <a href="case_status.php" class="cases-btn">
-        Show Cases
-    </a>
 
 </div>
 

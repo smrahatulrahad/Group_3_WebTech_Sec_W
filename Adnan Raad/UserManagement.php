@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <title>CivicLens - User Management</title>
 
-    <link rel="stylesheet" href="CSS/UserManagement.css">
+    <link rel="stylesheet" href="UserManagement.css">
 
 </head>
 
@@ -39,11 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <p>User Management</p>
 
     </div>
-
-
-    <a href="AdminDashboard.php" class="backTop">
-        Back to Dashboard
-    </a>
 
 </header>
 
@@ -78,24 +73,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         </div>
 
+         <div class="menu">
 
-
-        <div class="menu">
-
-            <a href="AdminDashboard.php">
-                Dashboard
+            <a href="AdminNewsfeed.php" class="active">
+                Newsfeed
             </a>
 
-            <a href="UserManagement.php" class="active">
+            <a href="ShowCases.php">
+                Case Status
+            </a>
+
+            <a href="PostApproval.php">
+                Post Approval
+            </a>
+
+            <a href="StaffManagement.php">
+                Staff Management
+            </a>
+
+            <a href="UserManagement.php">
                 User Management
             </a>
 
         </div>
-
-
-        <a href="#" class="logout">
-            Logout
-        </a>
 
 
     </aside>

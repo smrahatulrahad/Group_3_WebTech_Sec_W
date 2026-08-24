@@ -121,11 +121,11 @@ $posts = [
                 News Feed
             </a>
 
-            <a href="journalist_profile.php">
+            <a href="Profile.php">
                 Profile
             </a>
 
-            <a href="case_status.php">
+            <a href="ShowCases.php">
                 Show Cases
             </a>
 
@@ -150,10 +150,6 @@ $posts = [
                 </p>
 
             </div>
-
-            <a href="case_status.php" class="show-cases-btn">
-                Show Cases
-            </a>
 
         </div>
 
