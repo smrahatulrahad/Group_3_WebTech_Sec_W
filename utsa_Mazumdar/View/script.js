@@ -1,20 +1,45 @@
 function citizen() {
+
     document.getElementById("selectedRole").value = "citizen";
-    document.getElementById("citizenFields").style.display = "block";
-    document.getElementById("policeFields").style.display = "none";
-    document.getElementById("journalistFields").style.display = "none";
+
+    document.getElementById("citizenFields").classList.remove("hidden");
+
+    document.getElementById("policeFields").classList.add("hidden");
+
+    document.getElementById("journalistFields").classList.add("hidden");
 }
+
+
 
 function police() {
+
     document.getElementById("selectedRole").value = "police";
-    document.getElementById("citizenFields").style.display = "none";
-    document.getElementById("policeFields").style.display = "block";
-    document.getElementById("journalistFields").style.display = "none";
+
+    document.getElementById("citizenFields").classList.add("hidden");
+
+    document.getElementById("policeFields").classList.remove("hidden");
+
+    document.getElementById("journalistFields").classList.add("hidden");
 }
 
+
+
 function journalist() {
+
     document.getElementById("selectedRole").value = "journalist";
-    document.getElementById("citizenFields").style.display = "none";
-    document.getElementById("policeFields").style.display = "none";
-    document.getElementById("journalistFields").style.display = "block";
+
+    document.getElementById("citizenFields").classList.add("hidden");
+
+    document.getElementById("policeFields").classList.add("hidden");
+
+    document.getElementById("journalistFields").classList.remove("hidden");
 }
+
+
+/* Citizen opens first */
+
+window.onload = function () {
+
+    citizen();
+
+};
