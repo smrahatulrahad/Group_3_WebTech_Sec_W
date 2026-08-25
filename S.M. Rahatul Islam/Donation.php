@@ -94,10 +94,11 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
         </div>
 
 
-        <a href="#" class="logout">
-            Logout
-        </a>
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">
 
+Logout
+
+</a>
 
     </aside>
 
