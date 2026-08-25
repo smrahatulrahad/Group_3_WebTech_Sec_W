@@ -31,11 +31,11 @@ $stationName = $_SESSION["stationName"] ?? "Badda Police Station";
 $newsfeedPage = "UserNewsfeed.php";
 
 if ($userRole == "Journalist") {
-    $newsfeedPage = "JournalistNewsfeed.php";
+    $newsfeedPage = "../Adnan Raad/journalist.php";
 }
 
 if ($userRole == "Police") {
-    $newsfeedPage = "PoliceNewsfeed.php";
+    $newsfeedPage = "../Adnan Raad/police.php";
 }
 ?>
 
@@ -45,6 +45,7 @@ if ($userRole == "Police") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>CivicLens - Profile</title>
     <link rel="stylesheet" href="CSS/Profile.css">
 </head>
@@ -81,31 +82,43 @@ if ($userRole == "Police") {
 
         </div>
 
+
         <div class="menu">
+
             <a href="<?php echo $newsfeedPage; ?>">Newsfeed</a>
+
             <a href="Profile.php" class="active">Profile</a>
-            <a href="#">Pending Posts</a>
-            <a href="#">Show Cases</a>
+
+            <a href="PendingPosts.php">Pending Posts</a>
+
+            <a href="ShowCases.php">Show Cases</a>
+
         </div>
 
-        <a href="#" class="logout">Logout</a>
+
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">Logout</a>
 
     </aside>
+
 
 
     <main class="mainContent">
 
         <div class="pageTitle">
+
             <div>
                 <h2>My Profile</h2>
                 <p>View your personal and account information.</p>
             </div>
 
             <a href="#" class="editButton">Edit Profile</a>
+
         </div>
 
 
+
         <div class="profileCard">
+
 
             <div class="profileTop">
 
@@ -115,15 +128,19 @@ if ($userRole == "Police") {
 
                 <div class="profileName">
                     <h3><?php echo htmlspecialchars($userName); ?></h3>
-                    <span class="roleBadge"><?php echo htmlspecialchars($userRole); ?></span>
+                    <span class="roleBadge">
+                        <?php echo htmlspecialchars($userRole); ?>
+                    </span>
                 </div>
 
             </div>
 
 
+
             <div class="sectionTitle">
                 <h3>Basic Information</h3>
             </div>
+
 
             <div class="detailsGrid">
 
@@ -150,11 +167,13 @@ if ($userRole == "Police") {
             </div>
 
 
+
             <?php if ($userRole == "Citizen") { ?>
 
                 <div class="sectionTitle secondSection">
                     <h3>Citizen Information</h3>
                 </div>
+
 
                 <div class="detailsGrid">
 
@@ -183,11 +202,13 @@ if ($userRole == "Police") {
             <?php } ?>
 
 
+
             <?php if ($userRole == "Journalist") { ?>
 
                 <div class="sectionTitle secondSection">
                     <h3>Journalist Information</h3>
                 </div>
+
 
                 <div class="detailsGrid">
 
@@ -206,11 +227,13 @@ if ($userRole == "Police") {
             <?php } ?>
 
 
+
             <?php if ($userRole == "Police") { ?>
 
                 <div class="sectionTitle secondSection">
                     <h3>Police Information</h3>
                 </div>
+
 
                 <div class="detailsGrid">
 
@@ -233,6 +256,7 @@ if ($userRole == "Police") {
 
             <?php } ?>
 
+
         </div>
 
     </main>
@@ -240,4 +264,5 @@ if ($userRole == "Police") {
 </div>
 
 </body>
+
 </html>
