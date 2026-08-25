@@ -2,6 +2,8 @@
 
 session_start();
 
+include "../Model/DatabaseConnection.php";
+
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
 
@@ -11,15 +13,31 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
 }
 
 
+/* Common information */
+
 $role = $_POST["role"] ?? "";
+
 $fullname = trim($_POST["fullname"] ?? "");
-$email = strtolower(trim($_POST["email"] ?? ""));
+
+$email = strtolower(
+    trim($_POST["email"] ?? "")
+);
+
 $password = $_POST["password"] ?? "";
+
 $phone = trim($_POST["phone"] ?? "");
 
-$q1 = strtolower(trim($_POST["q1"] ?? ""));
-$q2 = strtolower(trim($_POST["q2"] ?? ""));
-$q3 = strtolower(trim($_POST["q3"] ?? ""));
+$q1 = strtolower(
+    trim($_POST["q1"] ?? "")
+);
+
+$q2 = strtolower(
+    trim($_POST["q2"] ?? "")
+);
+
+$q3 = strtolower(
+    trim($_POST["q3"] ?? "")
+);
 
 
 /* Check common information */
@@ -99,67 +117,27 @@ if (
 }
 
 
-/* Create registered users list */
+/* Default role-specific values */
 
-if (!isset($_SESSION["registeredUsers"])) {
+$district = null;
+$upazila = null;
+$union = null;
+$area = null;
+$nid = null;
 
-    $_SESSION["registeredUsers"] = [];
+$policeRank = null;
+$station = null;
+$badge = null;
 
-}
-
-
-/* Check duplicate account */
-
-if (isset($_SESSION["registeredUsers"][$email])) {
-
-    $_SESSION["registrationError"] =
-        "An account with this email already exists.";
-
-    header("Location: registration.php");
-    exit();
-
-}
-
-
-/* Convert role name */
-
-if ($role == "citizen") {
-
-    $roleName = "Citizen";
-
-} elseif ($role == "police") {
-
-    $roleName = "Police";
-
-} else {
-
-    $roleName = "Journalist";
-
-}
-
-
-/* Common account information */
-
-$newUser = [
-
-    "name" => $fullname,
-    "email" => $email,
-    "password" => password_hash(
-        $password,
-        PASSWORD_DEFAULT
-    ),
-    "phone" => $phone,
-    "role" => $roleName,
-    "q1" => $q1,
-    "q2" => $q2,
-    "q3" => $q3
-
-];
+$channel = null;
+$journalistId = null;
 
 
 /* Citizen information */
 
 if ($role == "citizen") {
+
+    $roleName = "Citizen";
 
     $district =
         trim($_POST["district"] ?? "");
@@ -193,21 +171,16 @@ if ($role == "citizen") {
 
     }
 
-
-    $newUser["district"] = $district;
-    $newUser["upazila"] = $upazila;
-    $newUser["union"] = $union;
-    $newUser["area"] = $area;
-    $newUser["nid"] = $nid;
-
 }
 
 
 /* Police information */
 
-if ($role == "police") {
+elseif ($role == "police") {
 
-    $rank =
+    $roleName = "Police";
+
+    $policeRank =
         trim($_POST["rank"] ?? "");
 
     $station =
@@ -218,7 +191,7 @@ if ($role == "police") {
 
 
     if (
-        $rank == "" ||
+        $policeRank == "" ||
         $station == "" ||
         $badge == ""
     ) {
@@ -231,17 +204,14 @@ if ($role == "police") {
 
     }
 
-
-    $newUser["rank"] = $rank;
-    $newUser["station"] = $station;
-    $newUser["badge"] = $badge;
-
 }
 
 
 /* Journalist information */
 
-if ($role == "journalist") {
+else {
+
+    $roleName = "Journalist";
 
     $channel =
         trim($_POST["channel"] ?? "");
@@ -263,19 +233,89 @@ if ($role == "journalist") {
 
     }
 
+}
 
-    $newUser["channel"] = $channel;
-    $newUser["journalistId"] = $journalistId;
+
+/* Open database connection */
+
+$database = new DatabaseConnection();
+
+$connection = $database->openConnection();
+
+
+/* Check duplicate email */
+
+$result = $database->getUserByEmail(
+    $connection,
+    $email
+);
+
+
+if ($result->num_rows > 0) {
+
+    $_SESSION["registrationError"] =
+        "An account with this email already exists.";
+
+    $connection->close();
+
+    header("Location: registration.php");
+    exit();
 
 }
 
 
-/* Save account */
+/* Hash password */
 
-$_SESSION["registeredUsers"][$email] = $newUser;
+$hashedPassword = password_hash(
+    $password,
+    PASSWORD_DEFAULT
+);
 
 
-/* Go to login page */
+/* Register user */
+
+$registered = $database->registerUser(
+    $connection,
+    $fullname,
+    $email,
+    $hashedPassword,
+    $phone,
+    $roleName,
+    $district,
+    $upazila,
+    $union,
+    $area,
+    $nid,
+    $policeRank,
+    $station,
+    $badge,
+    $channel,
+    $journalistId,
+    $q1,
+    $q2,
+    $q3
+);
+
+
+/* Check registration result */
+
+if (!$registered) {
+
+    $_SESSION["registrationError"] =
+        "Registration failed. Please try again.";
+
+    $connection->close();
+
+    header("Location: registration.php");
+    exit();
+
+}
+
+
+$connection->close();
+
+
+/* Registration successful */
 
 header("Location: login.php");
 exit();
