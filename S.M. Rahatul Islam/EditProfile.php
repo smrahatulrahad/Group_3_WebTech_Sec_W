@@ -26,7 +26,7 @@ $stationName = $_SESSION["stationName"] ?? "Badda Police Station";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $_SESSION["userName"] = trim($_POST["userName"]);
-    $_SESSION["userEmail"] = trim($_POST["userEmail"]);
+    //$_SESSION["userEmail"] = trim($_POST["userEmail"]);
     $_SESSION["userPhone"] = trim($_POST["userPhone"]);
 
 
@@ -190,12 +190,11 @@ if ($userRole == "Police") {
 
                     <label>Email Address</label>
 
-                    <input
-                        type="email"
-                        name="userEmail"
-                        value="<?php echo htmlspecialchars($userEmail); ?>"
-                        required
-                    >
+                   <input
+    type="email"
+    value="<?php echo htmlspecialchars($userEmail); ?>"
+    readonly
+>
 
                 </div>
 
