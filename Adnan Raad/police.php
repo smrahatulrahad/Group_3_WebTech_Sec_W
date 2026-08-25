@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$policeName = "Police Officer";
+$policeName = $_SESSION["userName"] ?? "Police Officer";
 
 $posts = [
     [
@@ -45,281 +45,736 @@ $posts = [
         "taken_by" => "me"
     ]
 ];
+
+
+/* Store case information in SESSION */
+if (!isset($_SESSION["policeCases"])) {
+
+    $_SESSION["policeCases"] = [];
+
+    foreach ($posts as $post) {
+
+        $_SESSION["policeCases"][$post["id"]] = [
+            "status" => $post["status"],
+            "taken_by" => $post["taken_by"]
+        ];
+
+    }
+
+}
+
+
+/* Take, Release or Resolve Case */
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $caseId = (int) ($_POST["caseId"] ?? 0);
+    $action = $_POST["action"] ?? "";
+
+
+    if (isset($_SESSION["policeCases"][$caseId])) {
+
+        $case = $_SESSION["policeCases"][$caseId];
+
+
+        if ($action == "take") {
+
+            if (
+                $case["taken_by"] == "" &&
+                $case["status"] != "Resolved"
+            ) {
+
+                $_SESSION["policeCases"][$caseId]["taken_by"] = "me";
+                $_SESSION["policeCases"][$caseId]["status"] = "In Progress";
+
+            }
+
+        }
+
+
+        if ($action == "release") {
+
+            if ($case["taken_by"] == "me") {
+
+                $_SESSION["policeCases"][$caseId]["taken_by"] = "";
+                $_SESSION["policeCases"][$caseId]["status"] = "Open";
+
+            }
+
+        }
+
+
+        if ($action == "resolve") {
+
+            if ($case["taken_by"] == "me") {
+
+                $_SESSION["policeCases"][$caseId]["status"] = "Resolved";
+
+            }
+
+        }
+
+
+        if ($action == "unresolve") {
+
+            if ($case["taken_by"] == "me") {
+
+                $_SESSION["policeCases"][$caseId]["status"] = "In Progress";
+
+            }
+
+        }
+
+    }
+
+
+    header("Location: police.php");
+    exit();
+
+}
+
+
+/* Update posts from SESSION */
+foreach ($posts as $key => $post) {
+
+    if (isset($_SESSION["policeCases"][$post["id"]])) {
+
+        $posts[$key]["status"] =
+            $_SESSION["policeCases"][$post["id"]]["status"];
+
+        $posts[$key]["taken_by"] =
+            $_SESSION["policeCases"][$post["id"]]["taken_by"];
+
+    }
+
+}
+
+
+/* Search and Filter */
+$searchText = trim($_GET["search"] ?? "");
+$filter = $_GET["filter"] ?? "all";
+
+
+if (isset($_GET["reset"])) {
+
+    $searchText = "";
+    $filter = "all";
+
+}
+
+
+$filteredPosts = [];
+
+
+foreach ($posts as $post) {
+
+    $showPost = true;
+
+
+    if ($searchText != "") {
+
+        if (
+            stripos($post["title"], $searchText) === false &&
+            stripos($post["content"], $searchText) === false &&
+            stripos($post["citizen"], $searchText) === false
+        ) {
+
+            $showPost = false;
+
+        }
+
+    }
+
+
+    if (
+        $filter != "all" &&
+        $filter != "Emergency" &&
+        $post["status"] != $filter
+    ) {
+
+        $showPost = false;
+
+    }
+
+
+    if (
+        $filter == "Emergency" &&
+        $post["emergency"] == false
+    ) {
+
+        $showPost = false;
+
+    }
+
+
+    if ($showPost == true) {
+
+        $filteredPosts[] = $post;
+
+    }
+
+}
 ?>
 
 <html>
 
 <head>
+
     <title>CivicLens - Police Newsfeed</title>
+
     <link rel="stylesheet" href="CSS/police.css">
+
 </head>
+
 
 <body>
 
+
 <div class="header">
 
+
     <div class="header-title">
+
         Police Newsfeed
+
     </div>
 
-    <div class="search-area">
 
-        <input type="text"
-               id="searchInput"
-               placeholder="Search posts...">
 
-        <button onclick="searchPosts()">
+    <form
+        class="search-area"
+        action="police.php"
+        method="get"
+    >
+
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search posts..."
+            value="<?php echo htmlspecialchars($searchText); ?>"
+        >
+
+
+        <button type="submit">
+
             Search
+
         </button>
 
-        <button onclick="refreshPage()">
+
+
+        <select name="filter">
+
+            <option
+                value="all"
+                <?php
+                if ($filter == "all") {
+                    echo "selected";
+                }
+                ?>
+            >
+                All
+            </option>
+
+
+            <option
+                value="Open"
+                <?php
+                if ($filter == "Open") {
+                    echo "selected";
+                }
+                ?>
+            >
+                Open
+            </option>
+
+
+            <option
+                value="In Progress"
+                <?php
+                if ($filter == "In Progress") {
+                    echo "selected";
+                }
+                ?>
+            >
+                In Progress
+            </option>
+
+
+            <option
+                value="Resolved"
+                <?php
+                if ($filter == "Resolved") {
+                    echo "selected";
+                }
+                ?>
+            >
+                Resolved
+            </option>
+
+
+            <option
+                value="Emergency"
+                <?php
+                if ($filter == "Emergency") {
+                    echo "selected";
+                }
+                ?>
+            >
+                Emergency
+            </option>
+
+        </select>
+
+
+
+        <button
+            type="submit"
+            name="reset"
+            value="1"
+        >
+
             Refresh
+
         </button>
 
-    </div>
+
+    </form>
+
+
 
     <div class="header-right">
 
+
         <span class="officer-name">
-            <?php echo $policeName; ?>
+
+            <?php echo htmlspecialchars($policeName); ?>
+
         </span>
 
-        <a href="Profile.php" class="profile-btn">
+
+        <a href="police.php" class="profile-btn">
+
+            Newsfeed
+
+        </a>
+
+
+        <a
+            href="../S.M. Rahatul Islam/Profile.php"
+            class="profile-btn"
+        >
+
             Profile
+
         </a>
 
-        <a href="ShowCases.php" class="show-cases-btn">
+
+        <a
+            href="../S.M. Rahatul Islam/ShowCases.php"
+            class="show-cases-btn"
+        >
+
             Show Cases
+
         </a>
 
-        <a href="logout.php" class="logout-btn">
+
+        <a
+            href="../utsa_Mazumdar/View/login.php"
+            class="logout-btn"
+        >
+
             Logout
+
         </a>
+
 
     </div>
+
 
 </div>
 
 
+
 <div class="main-content">
 
+
     <div class="feed-title">
+
 
         <div>
 
             <h2>
+
                 Reported Cases
+
             </h2>
 
+
             <p>
+
                 View citizen complaints and manage assigned cases.
+
             </p>
 
         </div>
 
-    </div>
-
-
-    <div class="filters">
-
-        <button id="allBtn"
-                class="active"
-                onclick="filterPosts('all')">
-            All
-        </button>
-
-        <button id="openBtn"
-                onclick="filterPosts('Open')">
-            Open
-        </button>
-
-        <button id="progressBtn"
-                onclick="filterPosts('In Progress')">
-            In Progress
-        </button>
-
-        <button id="resolvedBtn"
-                onclick="filterPosts('Resolved')">
-            Resolved
-        </button>
-
-        <button id="emergencyBtn"
-                onclick="filterPosts('Emergency')">
-            Emergency
-        </button>
 
     </div>
+
+
+
+    <div class="result-bar">
+
+        <span>
+
+            Cases
+
+        </span>
+
+        <span>
+
+            <?php echo count($filteredPosts); ?> cases
+
+        </span>
+
+    </div>
+
 
 
     <div id="postContainer">
 
-        <?php foreach ($posts as $post) { ?>
+
+        <?php foreach ($filteredPosts as $post) { ?>
+
 
             <?php
 
             $emergencyClass = "";
 
             if ($post["emergency"] == true) {
+
                 $emergencyClass = "emergency-card";
+
             }
 
             ?>
 
-            <div class="post-card <?php echo $emergencyClass; ?>"
-                 data-status="<?php echo $post["status"]; ?>"
-                 data-emergency="<?php echo $post["emergency"] ? "true" : "false"; ?>"
-                 data-taken="<?php echo $post["taken_by"]; ?>">
+
+            <div
+                class="post-card <?php echo $emergencyClass; ?>"
+            >
+
 
                 <div class="post-header">
 
+
                     <div>
 
+
                         <h3>
-                            <?php echo $post["title"]; ?>
+
+                            <?php echo htmlspecialchars($post["title"]); ?>
+
                         </h3>
+
 
                         <p class="citizen">
 
                             Citizen:
 
                             <strong>
-                                <?php echo $post["citizen"]; ?>
+
+                                <?php echo htmlspecialchars($post["citizen"]); ?>
+
                             </strong>
 
                         </p>
 
+
                     </div>
+
 
 
                     <div class="right-info">
 
+
                         <span class="date">
-                            <?php echo $post["date"]; ?>
+
+                            <?php echo htmlspecialchars($post["date"]); ?>
+
                         </span>
+
 
                         <?php if ($post["emergency"] == true) { ?>
 
+
                             <span class="emergency-badge">
+
                                 EMERGENCY
+
                             </span>
+
 
                         <?php } ?>
 
+
                     </div>
+
 
                 </div>
 
 
+
                 <p class="content">
-                    <?php echo $post["content"]; ?>
+
+                    <?php echo htmlspecialchars($post["content"]); ?>
+
                 </p>
+
 
 
                 <div class="status-container">
 
+
                     <?php if ($post["status"] == "Resolved") { ?>
 
+
                         <span class="case-status resolved">
+
                             Resolved
+
                         </span>
+
 
                     <?php } elseif ($post["taken_by"] == "me") { ?>
 
+
                         <span class="case-status progress">
+
                             In Progress (You)
+
                         </span>
+
 
                     <?php } elseif ($post["taken_by"] == "other") { ?>
 
+
                         <span class="case-status taken">
+
                             Taken by another officer
+
                         </span>
+
 
                     <?php } else { ?>
 
+
                         <span class="case-status open">
+
                             Open
+
                         </span>
+
 
                     <?php } ?>
 
+
                 </div>
+
 
 
                 <div class="actions">
 
+
+                    <?php if ($post["status"] != "Resolved") { ?>
+
+
+                        <?php if ($post["taken_by"] == "me") { ?>
+
+
+                            <form action="police.php" method="post">
+
+                                <input
+                                    type="hidden"
+                                    name="caseId"
+                                    value="<?php echo $post["id"]; ?>"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="release"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="take-btn"
+                                >
+
+                                    Release Case
+
+                                </button>
+
+                            </form>
+
+
+                        <?php } elseif ($post["taken_by"] == "other") { ?>
+
+
+                            <button
+                                type="button"
+                                class="take-btn"
+                                disabled
+                            >
+
+                                Case Taken
+
+                            </button>
+
+
+                        <?php } else { ?>
+
+
+                            <form action="police.php" method="post">
+
+                                <input
+                                    type="hidden"
+                                    name="caseId"
+                                    value="<?php echo $post["id"]; ?>"
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="take"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="take-btn"
+                                >
+
+                                    Take Case
+
+                                </button>
+
+                            </form>
+
+
+                        <?php } ?>
+
+
+                    <?php } ?>
+
+
+
                     <?php if ($post["taken_by"] == "me") { ?>
 
-                        <button class="take-btn"
-                                onclick="toggleCase(this)">
-                            Release Case
-                        </button>
 
-                    <?php } else { ?>
+                        <form action="police.php" method="post">
 
-                        <button class="take-btn"
-                                onclick="toggleCase(this)">
-                            Take Case
-                        </button>
+                            <input
+                                type="hidden"
+                                name="caseId"
+                                value="<?php echo $post["id"]; ?>"
+                            >
+
+
+                            <?php if ($post["status"] == "Resolved") { ?>
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="unresolve"
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="resolve-btn"
+                                >
+
+                                    Unmark Resolved
+
+                                </button>
+
+
+                            <?php } else { ?>
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="resolve"
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="resolve-btn"
+                                >
+
+                                    Mark Resolved
+
+                                </button>
+
+
+                            <?php } ?>
+
+
+                        </form>
+
 
                     <?php } ?>
 
-
-                    <?php
-
-                    $disabled = "";
-
-                    if ($post["taken_by"] == "other") {
-                        $disabled = "disabled";
-                    }
-
-                    ?>
-
-
-                    <?php if ($post["status"] == "Resolved") { ?>
-
-                        <button class="resolve-btn"
-                                onclick="toggleResolved(this)"
-                                <?php echo $disabled; ?>>
-                            Unmark Resolved
-                        </button>
-
-                    <?php } else { ?>
-
-                        <button class="resolve-btn"
-                                onclick="toggleResolved(this)"
-                                <?php echo $disabled; ?>>
-                            Mark Resolved
-                        </button>
-
-                    <?php } ?>
 
                 </div>
 
+
             </div>
+
 
         <?php } ?>
 
+
     </div>
 
 
-    <div id="noResult" class="no-result">
-        No cases found.
-    </div>
+
+    <?php if (count($filteredPosts) == 0) { ?>
+
+
+        <div
+            id="noResult"
+            class="no-result"
+            style="display: block;"
+        >
+
+            No cases found.
+
+        </div>
+
+
+    <?php } ?>
+
 
 </div>
+
 
 
 <div class="footer">
 
     <span>
+
         CivicLens Police Portal
+
     </span>
 
 </div>
 
-
-<script src="police.js"></script>
 
 </body>
 

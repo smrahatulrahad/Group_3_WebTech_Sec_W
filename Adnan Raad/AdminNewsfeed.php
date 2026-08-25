@@ -2,6 +2,7 @@
 session_start();
 
 $userName = $_SESSION["userName"] ?? "Admin User";
+$userRole = $_SESSION["userRole"] ?? "Admin";
 
 $view = $_GET["view"] ?? "all";
 ?>
@@ -76,10 +77,12 @@ $view = $_GET["view"] ?? "all";
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
-                <span>Admin</span>
+                <span>
+                    <?php echo htmlspecialchars($userRole); ?>
+                </span>
 
             </div>
 
@@ -93,17 +96,21 @@ $view = $_GET["view"] ?? "all";
                 Newsfeed
             </a>
 
-            <a href="ShowCases.php">
+
+            <a href="../S.M. Rahatul Islam/ShowCases.php">
                 Case Status
             </a>
 
-            <a href="PostApproval.php">
+
+            <a href="../utsa_Mazumdar/View/PostApproval.php">
                 Post Approval
             </a>
 
-            <a href="StaffManagement.php">
+
+            <a href="../utsa_Mazumdar/View/StaffManagement.php">
                 Staff Management
             </a>
+
 
             <a href="UserManagement.php">
                 User Management
@@ -112,7 +119,7 @@ $view = $_GET["view"] ?? "all";
         </div>
 
 
-        <a href="#" class="logout">
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">
             Logout
         </a>
 
@@ -137,6 +144,7 @@ $view = $_GET["view"] ?? "all";
             </div>
 
 
+
             <div class="viewButtons">
 
                 <a
@@ -145,6 +153,7 @@ $view = $_GET["view"] ?? "all";
                 >
                     All Posts
                 </a>
+
 
                 <a
                     href="AdminNewsfeed.php?view=trash"
@@ -254,7 +263,6 @@ $view = $_GET["view"] ?? "all";
                 </div>
 
 
-
                 <div class="badges">
 
                     <span class="pending">
@@ -273,7 +281,6 @@ $view = $_GET["view"] ?? "all";
                     Heavy rain has caused severe waterlogging in the residential road.
                     People are having difficulty using the road.
                 </p>
-
 
 
                 <div class="activity">
@@ -321,7 +328,6 @@ $view = $_GET["view"] ?? "all";
                     </button>
 
                 </div>
-
 
 
                 <div class="badges">

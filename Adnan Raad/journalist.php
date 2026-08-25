@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$journalistName = "Journalist";
+$journalistName = $_SESSION["userName"] ?? "Journalist";
 
 $posts = [
     [
@@ -45,6 +45,115 @@ $posts = [
         "video" => true
     ]
 ];
+
+
+/* Store covered posts in SESSION */
+if (!isset($_SESSION["journalistCoveredPosts"])) {
+
+    $_SESSION["journalistCoveredPosts"] = [];
+
+    foreach ($posts as $post) {
+
+        if ($post["covered"] == true) {
+            $_SESSION["journalistCoveredPosts"][] = $post["id"];
+        }
+
+    }
+
+}
+
+
+/* Cover / Uncover post */
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $postId = $_POST["postId"] ?? "";
+
+    if ($postId != "") {
+
+        $postId = (int) $postId;
+
+        if (in_array($postId, $_SESSION["journalistCoveredPosts"])) {
+
+            $_SESSION["journalistCoveredPosts"] =
+                array_values(
+                    array_diff(
+                        $_SESSION["journalistCoveredPosts"],
+                        [$postId]
+                    )
+                );
+
+        } else {
+
+            $_SESSION["journalistCoveredPosts"][] = $postId;
+
+        }
+
+    }
+
+    header("Location: journalist.php");
+    exit();
+}
+
+
+/* Update covered state */
+foreach ($posts as $key => $post) {
+
+    $posts[$key]["covered"] =
+        in_array(
+            $post["id"],
+            $_SESSION["journalistCoveredPosts"]
+        );
+
+}
+
+
+/* Search and Filter */
+$searchText = trim($_GET["search"] ?? "");
+$filter = $_GET["filter"] ?? "all";
+
+if (isset($_GET["reset"])) {
+    $searchText = "";
+    $filter = "all";
+}
+
+
+$filteredPosts = [];
+
+foreach ($posts as $post) {
+
+    $showPost = true;
+
+
+    if ($searchText != "") {
+
+        if (
+            stripos($post["title"], $searchText) === false &&
+            stripos($post["content"], $searchText) === false &&
+            stripos($post["owner"], $searchText) === false
+        ) {
+
+            $showPost = false;
+
+        }
+
+    }
+
+
+    if ($filter == "covered" && $post["covered"] == false) {
+        $showPost = false;
+    }
+
+
+    if ($filter == "uncovered" && $post["covered"] == true) {
+        $showPost = false;
+    }
+
+
+    if ($showPost == true) {
+        $filteredPosts[] = $post;
+    }
+
+}
 ?>
 
 <html>
@@ -62,52 +171,88 @@ $posts = [
         Journalist Feed
     </div>
 
-    <div class="search-area">
 
-        <input type="text"
-               id="searchInput"
-               placeholder="Search posts...">
+    <form class="search-area" action="journalist.php" method="get">
 
-        <button onclick="searchPosts()">
+        <input
+            type="text"
+            name="search"
+            placeholder="Search posts..."
+            value="<?php echo htmlspecialchars($searchText); ?>"
+        >
+
+
+        <button type="submit">
             Search
         </button>
 
-        <select id="filterSelect" onchange="filterPosts()">
 
-            <option value="all">
+        <select name="filter">
+
+            <option
+                value="all"
+                <?php
+                if ($filter == "all") {
+                    echo "selected";
+                }
+                ?>
+            >
                 All Posts
             </option>
 
-            <option value="covered">
+
+            <option
+                value="covered"
+                <?php
+                if ($filter == "covered") {
+                    echo "selected";
+                }
+                ?>
+            >
                 Covered by Me
             </option>
 
-            <option value="uncovered">
+
+            <option
+                value="uncovered"
+                <?php
+                if ($filter == "uncovered") {
+                    echo "selected";
+                }
+                ?>
+            >
                 Uncovered
             </option>
 
         </select>
 
-        <button onclick="refreshPage()">
+
+        <button
+            type="submit"
+            name="reset"
+            value="1"
+        >
             Refresh
         </button>
 
-    </div>
+    </form>
+
 
 
     <div class="header-right">
 
         <span class="journalist-name">
-            <?php echo $journalistName; ?>
+            <?php echo htmlspecialchars($journalistName); ?>
         </span>
 
-        <a href="logout.php" class="logout-btn">
+        <a href="../utsa_Mazumdar/View/login.php" class="logout-btn">
             Logout
         </a>
 
     </div>
 
 </div>
+
 
 
 <div class="page-container">
@@ -121,17 +266,18 @@ $posts = [
                 News Feed
             </a>
 
-            <a href="Profile.php">
+            <a href="../S.M. Rahatul Islam/Profile.php">
                 Profile
             </a>
 
-            <a href="ShowCases.php">
+            <a href="../S.M. Rahatul Islam/ShowCases.php">
                 Show Cases
             </a>
 
         </div>
 
     </div>
+
 
 
     <div class="main-content">
@@ -154,6 +300,7 @@ $posts = [
         </div>
 
 
+
         <div class="result-bar">
 
             <span>
@@ -161,30 +308,35 @@ $posts = [
             </span>
 
             <span id="postCount">
-                0 posts
+                <?php echo count($filteredPosts); ?> posts
             </span>
 
         </div>
 
 
+
         <div id="postContainer">
 
 
-            <?php foreach ($posts as $post) { ?>
+            <?php foreach ($filteredPosts as $post) { ?>
 
 
                 <?php
+
                 $emergencyClass = "";
 
                 if ($post["emergency"] == true) {
                     $emergencyClass = "emergency-card";
                 }
+
                 ?>
 
 
-                <div class="post-card <?php echo $emergencyClass; ?>"
-                     data-covered="<?php echo $post["covered"] ? "true" : "false"; ?>"
-                     data-emergency="<?php echo $post["emergency"] ? "true" : "false"; ?>">
+                <div
+                    class="post-card <?php echo $emergencyClass; ?>"
+                    data-covered="<?php echo $post["covered"] ? "true" : "false"; ?>"
+                    data-emergency="<?php echo $post["emergency"] ? "true" : "false"; ?>"
+                >
 
 
                     <div class="post-header">
@@ -193,24 +345,26 @@ $posts = [
                         <div>
 
                             <h3>
-                                <?php echo $post["title"]; ?>
+                                <?php echo htmlspecialchars($post["title"]); ?>
                             </h3>
+
 
                             <p class="owner">
 
                                 Posted by
 
                                 <strong>
-                                    <?php echo $post["owner"]; ?>
+                                    <?php echo htmlspecialchars($post["owner"]); ?>
                                 </strong>
 
                                 •
 
-                                <?php echo $post["date"]; ?>
+                                <?php echo htmlspecialchars($post["date"]); ?>
 
                             </p>
 
                         </div>
+
 
 
                         <div class="tag-area">
@@ -236,13 +390,14 @@ $posts = [
 
                         </div>
 
-
                     </div>
 
 
+
                     <p class="post-content">
-                        <?php echo $post["content"]; ?>
+                        <?php echo htmlspecialchars($post["content"]); ?>
                     </p>
+
 
 
                     <div class="post-actions">
@@ -252,11 +407,11 @@ $posts = [
 
                             <?php if ($post["video"] == true) { ?>
 
-                                <button class="video-btn"
-                                        onclick="playVideo()">
-
+                                <button
+                                    type="button"
+                                    class="video-btn"
+                                >
                                     ▶ Play Video
-
                                 </button>
 
                             <?php } ?>
@@ -264,27 +419,40 @@ $posts = [
                         </div>
 
 
+
                         <div>
 
-                            <?php if ($post["covered"] == true) { ?>
+                            <form action="journalist.php" method="post">
 
-                                <button class="cover-btn covered-button"
-                                        onclick="toggleCoverage(this)">
+                                <input
+                                    type="hidden"
+                                    name="postId"
+                                    value="<?php echo $post["id"]; ?>"
+                                >
 
-                                    Uncover
 
-                                </button>
+                                <?php if ($post["covered"] == true) { ?>
 
-                            <?php } else { ?>
+                                    <button
+                                        type="submit"
+                                        class="cover-btn covered-button"
+                                    >
+                                        Uncover
+                                    </button>
 
-                                <button class="cover-btn"
-                                        onclick="toggleCoverage(this)">
+                                <?php } else { ?>
 
-                                    Cover This Post
+                                    <button
+                                        type="submit"
+                                        class="cover-btn"
+                                    >
+                                        Cover This Post
+                                    </button>
 
-                                </button>
+                                <?php } ?>
 
-                            <?php } ?>
+
+                            </form>
 
                         </div>
 
@@ -301,17 +469,24 @@ $posts = [
         </div>
 
 
-        <div id="noResult" class="no-result">
-            No posts found.
-        </div>
+
+        <?php if (count($filteredPosts) == 0) { ?>
+
+            <div
+                id="noResult"
+                class="no-result"
+                style="display: block;"
+            >
+                No posts found.
+            </div>
+
+        <?php } ?>
 
 
     </div>
 
 </div>
 
-
-<script src="journalist.js"></script>
 
 </body>
 

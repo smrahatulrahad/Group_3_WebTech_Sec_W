@@ -21,7 +21,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>CivicLens - User Management</title>
-
     <link rel="stylesheet" href="CSS/UserManagement.css">
 
 </head>
@@ -62,40 +61,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
                 <span>
-                    <?php echo $userRole; ?>
+                    <?php echo htmlspecialchars($userRole); ?>
                 </span>
 
             </div>
 
         </div>
 
-         <div class="menu">
 
-            <a href="AdminNewsfeed.php" class="active">
+        <div class="menu">
+
+            <a href="AdminNewsfeed.php">
                 Newsfeed
             </a>
 
-            <a href="ShowCases.php">
+            <a href="../S.M. Rahatul Islam/ShowCases.php">
                 Case Status
             </a>
 
-            <a href="PostApproval.php">
+            <a href="../utsa_Mazumdar/View/PostApproval.php">
                 Post Approval
             </a>
 
-            <a href="StaffManagement.php">
+            <a href="../utsa_Mazumdar/View/StaffManagement.php">
                 Staff Management
             </a>
 
-            <a href="UserManagement.php">
+            <a href="UserManagement.php" class="active">
                 User Management
             </a>
 
         </div>
+
+
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">
+            Logout
+        </a>
 
 
     </aside>
@@ -119,7 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             <span class="roleBadge">
-                <?php echo $userRole; ?>
+                <?php echo htmlspecialchars($userRole); ?>
             </span>
 
         </div>
@@ -129,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if ($message != "") { ?>
 
             <div class="message">
-                <?php echo $message; ?>
+                <?php echo htmlspecialchars($message); ?>
             </div>
 
         <?php } ?>
@@ -215,9 +220,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td>Citizen</td>
 
                                 <td>
+
                                     <span class="status active">
                                         Active
                                     </span>
+
                                 </td>
 
                                 <td>
@@ -255,9 +262,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td>Journalist</td>
 
                                 <td>
+
                                     <span class="status pending">
                                         Pending
                                     </span>
+
                                 </td>
 
                                 <td>
@@ -295,9 +304,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td>Police</td>
 
                                 <td>
+
                                     <span class="status active">
                                         Active
                                     </span>
+
                                 </td>
 
                                 <td>
@@ -335,9 +346,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td>Citizen</td>
 
                                 <td>
+
                                     <span class="status disabled">
                                         Disabled
                                     </span>
+
                                 </td>
 
                                 <td>
@@ -375,9 +388,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td>Moderator</td>
 
                                 <td>
+
                                     <span class="status active">
                                         Active
                                     </span>
+
                                 </td>
 
                                 <td>
@@ -406,6 +421,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <td>
 
+
                                     <?php if ($userRole == "Admin") { ?>
 
                                         <input type="checkbox" name="user6">
@@ -419,6 +435,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                     <?php } ?>
 
+
                                 </td>
 
                                 <td>6</td>
@@ -428,9 +445,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <td>Admin</td>
 
                                 <td>
+
                                     <span class="status active">
                                         Active
                                     </span>
+
                                 </td>
 
                                 <td>
@@ -490,7 +509,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     Apply Changes
                 </button>
 
-                <a href="AdminDashboard.php" class="backButton">
+                <a href="AdminNewsfeed.php" class="backButton">
                     Back
                 </a>
 
