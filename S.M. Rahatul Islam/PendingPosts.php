@@ -18,7 +18,6 @@ if ($selectedPost == "1") {
     $body = "A drain cover near the school gate is broken and may cause accidents. Please repair it as soon as possible.";
     $createdAt = "20 Aug 2026, 06:30 PM";
 }
-
 if ($selectedPost == "2") {
     $postId = "102";
     $title = "Waterlogging After Heavy Rain";
@@ -36,7 +35,6 @@ if ($selectedPost == "2") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>CivicLens - Pending Posts</title>
-
     <link rel="stylesheet" href="CSS/PendingPosts.css">
 </head>
 
@@ -64,7 +62,6 @@ if ($selectedPost == "2") {
             <div class="avatar">
                 <?php echo strtoupper(substr($userName, 0, 1)); ?>
             </div>
-
             <div>
                 <small>Signed in as</small>
                 <strong><?php echo $userName; ?></strong>
@@ -81,15 +78,14 @@ if ($selectedPost == "2") {
 
             <a href="PendingPosts.php" class="active">Pending Posts</a>
 
-            <a href="#">Show Cases</a>
+            <a href="ShowCases.php">Show Cases</a>
 
-            <a href="#">Donation</a>
+            <a href="Donation.php">Donation</a>
 
         </div>
 
 
-        <a href="#" class="logout">Logout</a>
-
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">Logout</a>
     </aside>
 
 
@@ -113,7 +109,6 @@ if ($selectedPost == "2") {
                 <div class="postItem">
 
                     <div class="postTop">
-
                         <div>
                             <h4>Broken Drain Cover Near School</h4>
                             <p>20 Aug 2026, 06:30 PM</p>
@@ -126,7 +121,6 @@ if ($selectedPost == "2") {
                     <p class="shortText">
                         A drain cover near the school gate is broken and may cause accidents.
                     </p>
-
                     <a href="PendingPosts.php?post=1" class="editButton">
                         Edit Post
                     </a>
@@ -143,7 +137,6 @@ if ($selectedPost == "2") {
                             <h4>Waterlogging After Heavy Rain</h4>
                             <p>20 Aug 2026, 04:10 PM</p>
                         </div>
-
                         <span class="emergencyBadge">Emergency</span>
 
                     </div>
@@ -163,7 +156,6 @@ if ($selectedPost == "2") {
 
 
             <section class="editSection">
-
                 <h3>Edit Post</h3>
 
 
@@ -183,7 +175,6 @@ if ($selectedPost == "2") {
 
 
                 <?php if ($selectedPost != "") { ?>
-
                     <form action="PendingPosts.php" method="post">
 
 
@@ -198,7 +189,6 @@ if ($selectedPost == "2") {
 
 
                         <label>Title</label>
-
                         <input
                             type="text"
                             name="title"
@@ -209,7 +199,6 @@ if ($selectedPost == "2") {
                         <label>Category</label>
 
                         <select name="category">
-
                             <option
                                 <?php
                                 if ($category == "Normal Post") {
@@ -219,7 +208,6 @@ if ($selectedPost == "2") {
                             >
                                 Normal Post
                             </option>
-
                             <option
                                 <?php
                                 if ($category == "Emergency Post") {
@@ -234,7 +222,6 @@ if ($selectedPost == "2") {
 
 
                         <label>Body</label>
-
                         <textarea name="body"><?php echo $body; ?></textarea>
 
 
@@ -248,7 +235,6 @@ if ($selectedPost == "2") {
 
 
                         <div class="formButtons">
-
                             <button type="submit" class="saveButton">
                                 Save Changes
                             </button>
