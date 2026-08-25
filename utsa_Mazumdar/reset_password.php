@@ -5,6 +5,7 @@ session_start();
 
 $resetError = "";
 
+$resetSuccess = "";
 
 
 if (isset($_SESSION["resetError"])) {
@@ -16,6 +17,13 @@ if (isset($_SESSION["resetError"])) {
 }
 
 
+if (isset($_SESSION["resetSuccess"])) {
+
+    $resetSuccess = $_SESSION["resetSuccess"];
+
+    unset($_SESSION["resetSuccess"]);
+
+}
 
 ?>
 
@@ -24,10 +32,10 @@ if (isset($_SESSION["resetError"])) {
 
 <head>
 
-    <title>CiviLens - Reset Password</title>
+    <title>CivicLens - Reset Password</title>
 
     <link rel="stylesheet"
-          href="style.css">
+          href="CSS/style.css">
 
 </head>
 
@@ -40,7 +48,7 @@ if (isset($_SESSION["resetError"])) {
 
     <div class="header_reset">
 
-        CiviLens - Reset Password
+        CivicLens - Reset Password
 
     </div>
 
@@ -50,7 +58,6 @@ if (isset($_SESSION["resetError"])) {
 
 
         <div class="reset_left">
-
 
             <h1>
 
@@ -62,7 +69,7 @@ if (isset($_SESSION["resetError"])) {
 
             <p>
 
-                Recover your CiviLens account
+                Recover your CivicLens account
                 using your security questions.
 
             </p>
@@ -74,7 +81,6 @@ if (isset($_SESSION["resetError"])) {
                 create a new password.
 
             </p>
-
 
         </div>
 
@@ -96,7 +102,24 @@ if (isset($_SESSION["resetError"])) {
             if ($resetError != "") {
 
                 echo "<p class='reset_error'>";
-                echo $resetError;
+
+                echo htmlspecialchars($resetError);
+
+                echo "</p>";
+
+            }
+
+            ?>
+
+
+            <?php
+
+            if ($resetSuccess != "") {
+
+                echo "<p class='reset_success'>";
+
+                echo htmlspecialchars($resetSuccess);
+
                 echo "</p>";
 
             }
@@ -106,7 +129,7 @@ if (isset($_SESSION["resetError"])) {
 
 
             <form method="post"
-                  action="../Controller/resetPasswordController.php">
+                  action="resetPasswordController.php">
 
 
                 <table class="reset_table">
@@ -115,7 +138,9 @@ if (isset($_SESSION["resetError"])) {
                     <tr>
 
                         <td>
+
                             Email Address:
+
                         </td>
 
                         <td>
@@ -147,7 +172,9 @@ if (isset($_SESSION["resetError"])) {
                     <tr>
 
                         <td>
+
                             Favorite movie?
+
                         </td>
 
                         <td>
@@ -165,7 +192,9 @@ if (isset($_SESSION["resetError"])) {
                     <tr>
 
                         <td>
+
                             Favorite sports team?
+
                         </td>
 
                         <td>
@@ -183,7 +212,9 @@ if (isset($_SESSION["resetError"])) {
                     <tr>
 
                         <td>
+
                             Childhood hero?
+
                         </td>
 
                         <td>
@@ -201,7 +232,9 @@ if (isset($_SESSION["resetError"])) {
                     <tr>
 
                         <td>
+
                             New Password:
+
                         </td>
 
                         <td>
@@ -219,7 +252,9 @@ if (isset($_SESSION["resetError"])) {
                     <tr>
 
                         <td>
+
                             Confirm Password:
+
                         </td>
 
                         <td>
@@ -246,7 +281,6 @@ if (isset($_SESSION["resetError"])) {
                         Back
 
                     </a>
-
 
 
                     <button type="submit"

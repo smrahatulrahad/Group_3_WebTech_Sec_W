@@ -43,9 +43,9 @@ if (isset($_SESSION["loginError"])) {
 
 <head>
 
-    <title>CiviLens - Sign In</title>
+    <title>CivicLens - Sign In</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
@@ -59,7 +59,7 @@ if (isset($_SESSION["loginError"])) {
 
     <div class="login_header">
 
-        CiviLens - Sign In
+        CivicLens - Sign In
 
     </div>
 
@@ -70,7 +70,7 @@ if (isset($_SESSION["loginError"])) {
 
         <h1 id="login_title">
 
-            WELCOME TO CIVILENS
+            WELCOME TO CIVICLENS
 
         </h1>
 
@@ -92,7 +92,9 @@ if (isset($_SESSION["loginError"])) {
             if ($loginError != "") {
 
                 echo "<p class='login_error'>";
-                echo $loginError;
+
+                echo htmlspecialchars($loginError);
+
                 echo "</p>";
 
             }
@@ -102,7 +104,7 @@ if (isset($_SESSION["loginError"])) {
 
 
             <form method="post"
-                  action="../Controller/loginValidation.php">
+                  action="loginValidation.php">
 
 
                 <table class="login_table">
@@ -111,7 +113,9 @@ if (isset($_SESSION["loginError"])) {
                     <tr>
 
                         <td>
+
                             Email Address:
+
                         </td>
 
                         <td>
@@ -123,7 +127,9 @@ if (isset($_SESSION["loginError"])) {
                             <p class="login_error">
 
                                 <?php
-                                echo $emailError;
+
+                                echo htmlspecialchars($emailError);
+
                                 ?>
 
                             </p>
@@ -137,7 +143,9 @@ if (isset($_SESSION["loginError"])) {
                     <tr>
 
                         <td>
+
                             Password:
+
                         </td>
 
                         <td>
@@ -149,7 +157,9 @@ if (isset($_SESSION["loginError"])) {
                             <p class="login_error">
 
                                 <?php
-                                echo $passwordError;
+
+                                echo htmlspecialchars($passwordError);
+
                                 ?>
 
                             </p>
@@ -164,7 +174,6 @@ if (isset($_SESSION["loginError"])) {
 
 
                 <div class="login_buttons">
-
 
                     <button type="submit"
                             class="login_button">
@@ -182,7 +191,6 @@ if (isset($_SESSION["loginError"])) {
 
                     </a>
 
-
                 </div>
 
 
@@ -199,7 +207,6 @@ if (isset($_SESSION["loginError"])) {
 
 
         </div>
-
 
     </div>
 

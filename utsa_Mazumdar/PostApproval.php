@@ -64,11 +64,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $decision = $_POST["decision"] ?? "";
 
     if ($decision == "Approve") {
+
         $message = "Post approved. It will be saved after the database is connected.";
+
     }
 
+
     if ($decision == "Reject") {
+
         $message = "Post rejected. It will be saved after the database is connected.";
+
     }
 
 }
@@ -104,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
 
-    <a href="AdminNewsfeed.php" class="backTop">
+    <a href="../Adnan Raad/AdminNewsfeed.php" class="backTop">
         Back to Admin Newsfeed
     </a>
 
@@ -120,8 +125,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="userInfo">
 
+
             <div class="avatar">
+
                 <?php echo strtoupper(substr($userName, 0, 1)); ?>
+
             </div>
 
 
@@ -130,14 +138,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
                 <span>
-                    <?php echo $userRole; ?>
+                    <?php echo htmlspecialchars($userRole); ?>
                 </span>
 
             </div>
+
 
         </div>
 
@@ -145,34 +154,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="menu">
 
-            <a href="AdminNewsfeed.php">
+
+            <a href="../Adnan Raad/AdminNewsfeed.php">
                 Newsfeed
             </a>
 
-            <a href="ShowCases.php">
+
+            <a href="../S.M. Rahatul Islam/ShowCases.php">
                 Case Status
             </a>
+
 
             <a href="PostApproval.php" class="active">
                 Post Approval
             </a>
 
-            <a href="#">
-                Moderator List
+
+            <a href="StaffManagement.php">
+                Staff Management
             </a>
 
-            <a href="UserManagement.php">
+
+            <a href="../Adnan Raad/UserManagement.php">
                 User Management
             </a>
 
-            <a href="#">
-                Admin List
-            </a>
 
         </div>
 
 
-        <a href="#" class="logout">
+        <a href="login.php" class="logout">
             Logout
         </a>
 
@@ -198,9 +209,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <?php if ($message != "") { ?>
 
+
             <div class="message">
-                <?php echo $message; ?>
+
+                <?php echo htmlspecialchars($message); ?>
+
             </div>
+
 
         <?php } ?>
 
@@ -370,7 +385,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php if ($selectedPost != "") { ?>
 
 
-                    <form action="PostApproval.php?post=<?php echo $selectedPost; ?>" method="post">
+                    <form action="PostApproval.php?post=<?php echo htmlspecialchars($selectedPost); ?>" method="post">
 
 
                         <div class="detailsGrid">
@@ -382,7 +397,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo $postId; ?>"
+                                    value="<?php echo htmlspecialchars($postId); ?>"
                                     readonly
                                 >
 
@@ -396,7 +411,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo $postType; ?>"
+                                    value="<?php echo htmlspecialchars($postType); ?>"
                                     readonly
                                 >
 
@@ -410,7 +425,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo $title; ?>"
+                                    value="<?php echo htmlspecialchars($title); ?>"
                                     readonly
                                 >
 
@@ -424,7 +439,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo $author; ?>"
+                                    value="<?php echo htmlspecialchars($author); ?>"
                                     readonly
                                 >
 
@@ -438,7 +453,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo $createdAt; ?>"
+                                    value="<?php echo htmlspecialchars($createdAt); ?>"
                                     readonly
                                 >
 
@@ -450,7 +465,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <label>Body</label>
 
-                                <textarea readonly><?php echo $body; ?></textarea>
+                                <textarea readonly><?php echo htmlspecialchars($body); ?></textarea>
 
                             </div>
 
@@ -469,22 +484,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <?php if ($imageName != "") { ?>
 
+
                                     <div class="imagePlaceholder">
                                         Image Preview
                                     </div>
 
                                     <p>
-                                        <?php echo $imageName; ?>
+                                        <?php echo htmlspecialchars($imageName); ?>
                                     </p>
+
 
                                 <?php } ?>
 
 
                                 <?php if ($imageName == "") { ?>
 
+
                                     <div class="noMedia">
                                         No image attached
                                     </div>
+
 
                                 <?php } ?>
 
@@ -500,22 +519,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <?php if ($hasVideo == true) { ?>
 
+
                                     <div class="videoPlaceholder">
                                         Video Attached
                                     </div>
 
+
                                     <button type="button" class="playButton">
                                         Play Video
                                     </button>
+
 
                                 <?php } ?>
 
 
                                 <?php if ($hasVideo == false) { ?>
 
+
                                     <div class="noMedia">
                                         No video attached
                                     </div>
+
 
                                 <?php } ?>
 
@@ -543,6 +567,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         <div class="decisionButtons">
 
+
                             <button
                                 type="submit"
                                 name="decision"
@@ -566,6 +591,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <a href="PostApproval.php" class="clearButton">
                                 Clear
                             </a>
+
 
                         </div>
 

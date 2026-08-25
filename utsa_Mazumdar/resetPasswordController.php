@@ -3,130 +3,153 @@
 session_start();
 
 
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    header("Location: reset_password.php");
+    exit();
 
+}
 
-    $email = $_POST["email"];
 
-    $q1 = $_POST["q1"];
+$email = trim($_POST["email"] ?? "");
 
-    $q2 = $_POST["q2"];
+$q1 = strtolower(trim($_POST["q1"] ?? ""));
 
-    $q3 = $_POST["q3"];
+$q2 = strtolower(trim($_POST["q2"] ?? ""));
 
-    $new_password = $_POST["new_password"];
+$q3 = strtolower(trim($_POST["q3"] ?? ""));
 
-    $confirm_password =
-        $_POST["confirm_password"];
+$newPassword = $_POST["new_password"] ?? "";
 
+$confirmPassword = $_POST["confirm_password"] ?? "";
 
 
-    /* Check account */
 
-    if (!isset($_SESSION["email"])) {
+/* Check empty fields */
 
-        $_SESSION["resetError"] =
-            "No account found. Please register first.";
+if (
+    $email == "" ||
+    $q1 == "" ||
+    $q2 == "" ||
+    $q3 == "" ||
+    $newPassword == "" ||
+    $confirmPassword == ""
+) {
 
-        header("Location: ../View/reset_password.php");
+    $_SESSION["resetError"] =
+        "Please complete all fields.";
 
-        exit();
-
-    }
-
-
-
-    /* Check email */
-
-    if ($email != $_SESSION["email"]) {
-
-        $_SESSION["resetError"] =
-            "Email is incorrect.";
-
-        header("Location: ../View/reset_password.php");
-
-        exit();
-
-    }
-
-
-
-    /* Check first answer */
-
-    if ($q1 != $_SESSION["q1"]) {
-
-        $_SESSION["resetError"] =
-            "Favorite movie answer is incorrect.";
-
-        header("Location: ../View/reset_password.php");
-
-        exit();
-
-    }
-
-
-
-    /* Check second answer */
-
-    if ($q2 != $_SESSION["q2"]) {
-
-        $_SESSION["resetError"] =
-            "Favorite sports team answer is incorrect.";
-
-        header("Location: ../View/reset_password.php");
-
-        exit();
-
-    }
-
-    
-
-
-
-    /* Check third answer */
-
-    if ($q3 != $_SESSION["q3"]) {
-
-        $_SESSION["resetError"] =
-            "Childhood hero answer is incorrect.";
-
-        header("Location: ../View/reset_password.php");
-
-        exit();
-
-    }
-
-
-
-    /* Check new password */
-
-    if ($new_password != $confirm_password) {
-
-        $_SESSION["resetError"] =
-            "Passwords do not match.";
-
-        header("Location: ../View/reset_password.php");
-
-        exit();
-
-    }
-
-
-
-    /* Change password */
-
-    $_SESSION["password"] =
-        $new_password;
-
-
-
-    /* Go to login */
-
-    header("Location: ../View/login.php");
+    header("Location: reset_password.php");
 
     exit();
 
 }
+
+
+
+/* Check email */
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+    $_SESSION["resetError"] =
+        "Enter a valid email address.";
+
+    header("Location: reset_password.php");
+
+    exit();
+
+}
+
+
+
+/* Check account */
+
+if (
+    !isset($_SESSION["registeredUsers"]) ||
+    !isset($_SESSION["registeredUsers"][$email])
+) {
+
+    $_SESSION["resetError"] =
+        "No registered account was found with this email address.";
+
+    header("Location: reset_password.php");
+
+    exit();
+
+}
+
+
+
+$user =
+    $_SESSION["registeredUsers"][$email];
+
+
+
+/* Check security answers */
+
+if (
+    $user["q1"] != $q1 ||
+    $user["q2"] != $q2 ||
+    $user["q3"] != $q3
+) {
+
+    $_SESSION["resetError"] =
+        "Security question answers do not match.";
+
+    header("Location: reset_password.php");
+
+    exit();
+
+}
+
+
+
+/* Check password length */
+
+if (strlen($newPassword) < 6) {
+
+    $_SESSION["resetError"] =
+        "Password must be at least 6 characters.";
+
+    header("Location: reset_password.php");
+
+    exit();
+
+}
+
+
+
+/* Check password confirmation */
+
+if ($newPassword != $confirmPassword) {
+
+    $_SESSION["resetError"] =
+        "New password and confirm password do not match.";
+
+    header("Location: reset_password.php");
+
+    exit();
+
+}
+
+
+
+/* Update password */
+
+$_SESSION["registeredUsers"][$email]["password"] =
+    password_hash(
+        $newPassword,
+        PASSWORD_DEFAULT
+    );
+
+
+
+$_SESSION["resetSuccess"] =
+    "Password changed successfully. You can now sign in.";
+
+
+header("Location: reset_password.php");
+
+exit();
 
 ?>

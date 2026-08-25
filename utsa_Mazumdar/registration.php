@@ -22,9 +22,9 @@ if (isset($_SESSION["registrationError"])) {
 
 <head>
 
-    <title>CiviLens - Registration</title>
+    <title>CivicLens - Registration</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
@@ -35,13 +35,12 @@ if (isset($_SESSION["registrationError"])) {
 
     <div class="register-header">
 
-        CiviLens - Create New Account
+        CivicLens - Create New Account
 
     </div>
 
 
     <div class="register-content">
-
 
         <!-- LEFT SIDE -->
 
@@ -49,7 +48,7 @@ if (isset($_SESSION["registrationError"])) {
 
             <h1>
                 WELCOME TO<br>
-                CIVILENS
+                CIVICLENS
             </h1>
 
             <p>
@@ -66,9 +65,8 @@ if (isset($_SESSION["registrationError"])) {
             <div class="role-box">
 
                 <!-- Citizen is selected first -->
-
                 <input type="radio"
-                       name="role"
+                       name="roleChoice"
                        value="citizen"
                        onclick="citizen()"
                        checked>
@@ -80,7 +78,7 @@ if (isset($_SESSION["registrationError"])) {
 
 
                 <input type="radio"
-                       name="role"
+                       name="roleChoice"
                        value="police"
                        onclick="police()">
 
@@ -91,7 +89,7 @@ if (isset($_SESSION["registrationError"])) {
 
 
                 <input type="radio"
-                       name="role"
+                       name="roleChoice"
                        value="journalist"
                        onclick="journalist()">
 
@@ -120,12 +118,15 @@ if (isset($_SESSION["registrationError"])) {
             </h1>
 
 
+
             <?php
 
             if ($registrationError != "") {
 
                 echo "<p class='login_error'>";
-                echo $registrationError;
+
+                echo htmlspecialchars($registrationError);
+
                 echo "</p>";
 
             }
@@ -134,7 +135,9 @@ if (isset($_SESSION["registrationError"])) {
 
 
             <form method="post"
-                  action="../Controller/registrationValidation.php">
+                  action="registrationValidation.php"
+                  id="registrationForm"
+                  onsubmit="return validateRegistration()">
 
 
                 <!-- This stores the selected role -->
@@ -143,7 +146,6 @@ if (isset($_SESSION["registrationError"])) {
                        name="role"
                        id="selectedRole"
                        value="citizen">
-
 
 
                 <!-- COMMON INFORMATION -->
@@ -157,6 +159,7 @@ if (isset($_SESSION["registrationError"])) {
 
                     <input type="text"
                            name="fullname"
+                           id="fullname"
                            required>
 
 
@@ -167,6 +170,7 @@ if (isset($_SESSION["registrationError"])) {
 
                     <input type="email"
                            name="email"
+                           id="email"
                            required>
 
 
@@ -177,6 +181,7 @@ if (isset($_SESSION["registrationError"])) {
 
                     <input type="password"
                            name="password"
+                           id="password"
                            required>
 
 
@@ -187,6 +192,7 @@ if (isset($_SESSION["registrationError"])) {
 
                     <input type="text"
                            name="phone"
+                           id="phone"
                            required>
 
                 </div>
@@ -212,7 +218,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="district">
+                               name="district"
+                               id="district">
 
 
 
@@ -221,7 +228,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="upazila">
+                               name="upazila"
+                               id="upazila">
 
 
 
@@ -230,8 +238,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="union">
-
+                               name="union"
+                               id="union">
 
 
                         <span>
@@ -239,7 +247,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="area">
+                               name="area"
+                               id="area">
 
 
 
@@ -248,7 +257,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="nid">
+                               name="nid"
+                               id="nid">
 
 
                     </div>
@@ -276,8 +286,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="rank">
-
+                               name="rank"
+                               id="rank">
 
 
                         <span>
@@ -285,7 +295,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="station">
+                               name="station"
+                               id="station">
 
 
 
@@ -294,7 +305,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="badge">
+                               name="badge"
+                               id="badge">
 
 
                     </div>
@@ -322,8 +334,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="channel">
-
+                               name="channel"
+                               id="channel">
 
 
                         <span>
@@ -331,7 +343,8 @@ if (isset($_SESSION["registrationError"])) {
                         </span>
 
                         <input type="text"
-                               name="journalist_id">
+                               name="journalist_id"
+                               id="journalist_id">
 
 
                     </div>
@@ -359,6 +372,7 @@ if (isset($_SESSION["registrationError"])) {
 
                         <input type="text"
                                name="q1"
+                               id="q1"
                                required>
 
 
@@ -369,8 +383,8 @@ if (isset($_SESSION["registrationError"])) {
 
                         <input type="text"
                                name="q2"
+                               id="q2"
                                required>
-
 
 
                         <span>
@@ -379,6 +393,7 @@ if (isset($_SESSION["registrationError"])) {
 
                         <input type="text"
                                name="q3"
+                               id="q3"
                                required>
 
 
@@ -401,7 +416,6 @@ if (isset($_SESSION["registrationError"])) {
                     </a>
 
 
-
                     <button type="submit"
                             class="next">
 
@@ -415,7 +429,6 @@ if (isset($_SESSION["registrationError"])) {
 
             </form>
 
-
         </div>
 
     </div>
@@ -423,7 +436,7 @@ if (isset($_SESSION["registrationError"])) {
 </div>
 
 
-<script src="script.js"></script>
+<script src="JS/script.js"></script>
 
 </body>
 

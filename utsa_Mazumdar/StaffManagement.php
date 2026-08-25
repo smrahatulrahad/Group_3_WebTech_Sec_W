@@ -18,7 +18,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($action == "Remove") {
         $message = $staffType . " will be removed after the database is connected.";
     }
-
 }
 ?>
 
@@ -52,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
 
-    <a href="AdminNewsfeed.php" class="backTop">
+    <a href="../Adnan Raad/AdminNewsfeed.php" class="backTop">
         Back to Admin Newsfeed
     </a>
 
@@ -78,11 +77,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
                 <span>
-                    <?php echo $userRole; ?>
+                    <?php echo htmlspecialchars($userRole); ?>
                 </span>
 
             </div>
@@ -93,11 +92,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="menu">
 
-            <a href="AdminNewsfeed.php">
+            <a href="../Adnan Raad/AdminNewsfeed.php">
                 Newsfeed
             </a>
 
-            <a href="ShowCases.php">
+            <a href="../S.M. Rahatul Islam/ShowCases.php">
                 Case Status
             </a>
 
@@ -109,14 +108,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 Staff Management
             </a>
 
-            <a href="UserManagement.php">
+            <a href="../Adnan Raad/UserManagement.php">
                 User Management
             </a>
 
         </div>
 
 
-        <a href="#" class="logout">
+        <a href="login.php" class="logout">
             Logout
         </a>
 
@@ -142,7 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             <span class="roleBadge">
-                <?php echo $userRole; ?>
+                <?php echo htmlspecialchars($userRole); ?>
             </span>
 
         </div>
@@ -152,7 +151,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if ($message != "") { ?>
 
             <div class="message">
-                <?php echo $message; ?>
+                <?php echo htmlspecialchars($message); ?>
             </div>
 
         <?php } ?>
@@ -176,7 +175,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </p>
 
                     </div>
-
 
                     <span>3 Admins</span>
 
@@ -298,7 +296,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         >
                             Add Admin
                         </button>
-
 
                         <button
                             type="submit"
@@ -458,7 +455,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     >
                         Add Moderator
                     </button>
-
 
                     <button
                         type="submit"
