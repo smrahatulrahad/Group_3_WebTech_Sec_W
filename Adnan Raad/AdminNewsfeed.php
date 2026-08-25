@@ -17,7 +17,7 @@ $view = $_GET["view"] ?? "all";
 
     <title>CivicLens - Admin Newsfeed</title>
 
-    <link rel="stylesheet" href="CSS/AdminNewsfeed.css">
+    <link rel="stylesheet" href="AdminNewsfeed.css">
 
 </head>
 
