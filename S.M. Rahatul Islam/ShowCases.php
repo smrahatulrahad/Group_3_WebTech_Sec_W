@@ -7,11 +7,11 @@ $userRole = $_SESSION["userRole"] ?? "Citizen";
 $newsfeedPage = "UserNewsfeed.php";
 
 if ($userRole == "Journalist") {
-    $newsfeedPage = "JournalistNewsfeed.php";
+    $newsfeedPage = "../Adnan Raad/journalist.php";
 }
 
 if ($userRole == "Police") {
-    $newsfeedPage = "PoliceNewsfeed.php";
+    $newsfeedPage = "../Adnan Raad/police.php";
 }
 ?>
 
@@ -25,7 +25,6 @@ if ($userRole == "Police") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>CivicLens - Show Cases</title>
-
     <link rel="stylesheet" href="CSS/ShowCases.css">
 
 </head>
@@ -65,7 +64,6 @@ if ($userRole == "Police") {
                 <?php echo strtoupper(substr($userName, 0, 1)); ?>
             </div>
 
-
             <div>
 
                 <small>Signed in as</small>
@@ -94,7 +92,6 @@ if ($userRole == "Police") {
                 Profile
             </a>
 
-
             <?php if ($userRole == "Citizen") { ?>
 
                 <a href="PendingPosts.php">
@@ -111,7 +108,7 @@ if ($userRole == "Police") {
 
             <?php if ($userRole == "Citizen") { ?>
 
-                <a href="#">
+                <a href="Donation.php">
                     Donation
                 </a>
 
@@ -119,8 +116,7 @@ if ($userRole == "Police") {
 
         </div>
 
-
-        <a href="#" class="logout">
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">
             Logout
         </a>
 
@@ -157,11 +153,10 @@ if ($userRole == "Police") {
 
 
 
+
             <div class="tableWrapper">
 
-
                 <table>
-
 
                     <thead>
 
@@ -185,7 +180,6 @@ if ($userRole == "Police") {
                         <tr>
 
                             <td>#1001</td>
-
                             <td>
                                 <a href="<?php echo $newsfeedPage; ?>">
                                     Broken Drain Cover Near School
@@ -199,8 +193,6 @@ if ($userRole == "Police") {
                             </td>
 
                         </tr>
-
-
 
                         <tr>
 
@@ -239,8 +231,6 @@ if ($userRole == "Police") {
                             </td>
 
                         </tr>
-
-
 
                         <tr>
 
