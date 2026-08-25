@@ -1,8 +1,27 @@
 <?php
 session_start();
 
-$userName = $_SESSION["userName"] ?? "Admin User";
-$userRole = $_SESSION["userRole"] ?? "Admin";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: login.php");
+    exit();
+}
+
+
+if (
+    $_SESSION["userRole"] != "Admin" &&
+    $_SESSION["userRole"] != "Moderator"
+) {
+    header("Location: login.php");
+    exit();
+}
+
+
+$userName = $_SESSION["userName"];
+$userRole = $_SESSION["userRole"];
 
 $selectedPost = $_GET["post"] ?? "";
 $message = "";
@@ -59,20 +78,29 @@ if ($selectedPost == "3") {
 }
 
 
+if (!isset($_SESSION["postStatus"])) {
+    $_SESSION["postStatus"] = [];
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $decision = $_POST["decision"] ?? "";
 
-    if ($decision == "Approve") {
+    if (
+        $selectedPost != "" &&
+        ($decision == "Approve" || $decision == "Reject")
+    ) {
 
-        $message = "Post approved. It will be saved after the database is connected.";
+        $_SESSION["postStatus"][$selectedPost] = $decision;
 
-    }
+        if ($decision == "Approve") {
+            $message = "Post approved successfully.";
+        }
 
-
-    if ($decision == "Reject") {
-
-        $message = "Post rejected. It will be saved after the database is connected.";
+        if ($decision == "Reject") {
+            $message = "Post rejected successfully.";
+        }
 
     }
 
@@ -183,9 +211,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
 
-        <a href="login.php" class="logout">
-            Logout
-        </a>
+        <a href="logout.php" class="logout">
+    Logout
+</a>
 
 
     </aside>

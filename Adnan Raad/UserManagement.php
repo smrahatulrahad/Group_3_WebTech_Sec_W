@@ -1,13 +1,97 @@
 <?php
 session_start();
 
-$userName = $_SESSION["userName"] ?? "Admin User";
-$userRole = $_SESSION["userRole"] ?? "Admin";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+if (
+    $_SESSION["userRole"] != "Admin" &&
+    $_SESSION["userRole"] != "Moderator"
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$userName = $_SESSION["userName"];
+$userRole = $_SESSION["userRole"];
 
 $message = "";
 
+if (!isset($_SESSION["registeredUsers"])) {
+    $_SESSION["registeredUsers"] = [];
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $message = "Changes will be saved after the database is connected.";
+
+    $selectedEmail = $_POST["selectedEmail"] ?? "";
+    $action = $_POST["action"] ?? "";
+
+
+    if ($selectedEmail == "") {
+
+        $message = "Please select a user.";
+
+    } elseif (
+        !isset($_SESSION["registeredUsers"][$selectedEmail])
+    ) {
+
+        $message = "User account not found.";
+
+    } else {
+
+        $selectedRole =
+            $_SESSION["registeredUsers"][$selectedEmail]["role"];
+
+
+        /* Moderator cannot modify Admin accounts */
+
+        if (
+            $userRole == "Moderator" &&
+            $selectedRole == "Admin"
+        ) {
+
+            $message =
+                "Moderator cannot modify Admin accounts.";
+
+        } elseif ($action == "Enable") {
+
+            $_SESSION["registeredUsers"][$selectedEmail]["status"]
+                = "Active";
+
+            $message = "User enabled successfully.";
+
+        } elseif ($action == "Disable") {
+
+            $_SESSION["registeredUsers"][$selectedEmail]["status"]
+                = "Disabled";
+
+            $message = "User disabled successfully.";
+
+        } elseif ($action == "Remove") {
+
+            unset(
+                $_SESSION["registeredUsers"][$selectedEmail]
+            );
+
+            $message = "User removed successfully.";
+
+        } else {
+
+            $message = "Please select an action.";
+
+        }
+
+    }
+
 }
 ?>
 
@@ -83,11 +167,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 Case Status
             </a>
 
-            <a href="../utsa_Mazumdar/View/PostApproval.php">
+            <a href="../utsa_Mazumdar/PostApproval.php">
                 Post Approval
             </a>
 
-            <a href="../utsa_Mazumdar/View/StaffManagement.php">
+            <a href="../utsa_Mazumdar/StaffManagement.php">
                 Staff Management
             </a>
 
@@ -98,7 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
 
-        <a href="../utsa_Mazumdar/View/login.php" class="logout">
+       <a href="../utsa_Mazumdar/logout.php" class="logout-btn">
             Logout
         </a>
 

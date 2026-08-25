@@ -61,10 +61,18 @@ function validateRegistration() {
 
     if (email == "") {
 
-        alert("Email address is required.");
+    alert("Email address is required.");
 
-        return false;
-    }
+    return false;
+}
+
+
+if (!email.includes("@") || !email.includes(".")) {
+
+    alert("Please enter a valid email address.");
+
+    return false;
+}
 
 
     if (password.length < 6) {

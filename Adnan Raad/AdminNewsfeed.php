@@ -1,8 +1,27 @@
 <?php
 session_start();
 
-$userName = $_SESSION["userName"] ?? "Admin User";
-$userRole = $_SESSION["userRole"] ?? "Admin";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+if (
+    $_SESSION["userRole"] != "Admin" &&
+    $_SESSION["userRole"] != "Moderator"
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$userName = $_SESSION["userName"];
+$userRole = $_SESSION["userRole"];
 
 $view = $_GET["view"] ?? "all";
 ?>
@@ -102,12 +121,12 @@ $view = $_GET["view"] ?? "all";
             </a>
 
 
-            <a href="../utsa_Mazumdar/View/PostApproval.php">
+            <a href="../utsa_Mazumdar/PostApproval.php">
                 Post Approval
             </a>
 
 
-            <a href="../utsa_Mazumdar/View/StaffManagement.php">
+            <a href="../utsa_Mazumdar/StaffManagement.php">
                 Staff Management
             </a>
 
@@ -119,7 +138,7 @@ $view = $_GET["view"] ?? "all";
         </div>
 
 
-        <a href="../utsa_Mazumdar/View/login.php" class="logout">
+        <a href="../utsa_Mazumdar/logout.php" class="logout-btn">
             Logout
         </a>
 

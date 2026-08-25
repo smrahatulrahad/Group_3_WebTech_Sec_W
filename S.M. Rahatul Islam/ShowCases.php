@@ -1,8 +1,18 @@
 <?php
 session_start();
 
-$userName = $_SESSION["userName"] ?? "Nafis Rahman";
-$userRole = $_SESSION["userRole"] ?? "Citizen";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$userName = $_SESSION["userName"];
+$userRole = $_SESSION["userRole"];
 
 $newsfeedPage = "UserNewsfeed.php";
 
@@ -100,11 +110,11 @@ if ($userRole == "Admin" || $userRole == "Moderator") {
                     Case Status
                 </a>
 
-                <a href="../utsa_Mazumdar/View/PostApproval.php">
+                <a href="../utsa_Mazumdar/PostApproval.php">
                     Post Approval
                 </a>
 
-                <a href="../utsa_Mazumdar/View/StaffManagement.php">
+                <a href="../utsa_Mazumdar/StaffManagement.php">
                     Staff Management
                 </a>
 
@@ -154,10 +164,7 @@ if ($userRole == "Admin" || $userRole == "Moderator") {
         </div>
 
 
-        <a href="../utsa_Mazumdar/View/login.php" class="logout">
-            Logout
-        </a>
-
+        <a href="../utsa_Mazumdar/logout.php" class="logout">Logout</a>
 
     </aside>
 

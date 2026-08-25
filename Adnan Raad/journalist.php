@@ -1,7 +1,23 @@
 <?php
 session_start();
 
-$journalistName = $_SESSION["userName"] ?? "Journalist";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+if ($_SESSION["userRole"] != "Journalist") {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$journalistName = $_SESSION["userName"];
 
 $posts = [
     [
@@ -245,7 +261,7 @@ foreach ($posts as $post) {
             <?php echo htmlspecialchars($journalistName); ?>
         </span>
 
-        <a href="../utsa_Mazumdar/View/login.php" class="logout-btn">
+        <a href="../utsa_Mazumdar/logout.php" class="logout-btn">
             Logout
         </a>
 

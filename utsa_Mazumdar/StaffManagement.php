@@ -1,24 +1,141 @@
 <?php
 session_start();
 
-$userName = $_SESSION["userName"] ?? "Admin User";
-$userRole = $_SESSION["userRole"] ?? "Admin";
+
+/* User must be logged in */
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+
+    header("Location: login.php");
+    exit();
+
+}
+
+
+/* Only Admin or Moderator can access this page */
+
+if (
+    $_SESSION["userRole"] != "Admin" &&
+    $_SESSION["userRole"] != "Moderator"
+) {
+
+    header("Location: login.php");
+    exit();
+
+}
+
+
+$userName = $_SESSION["userName"];
+$userRole = $_SESSION["userRole"];
 
 $message = "";
+
+if (!isset($_SESSION["registeredUsers"])) {
+    $_SESSION["registeredUsers"] = [];
+}
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $action = $_POST["action"] ?? "";
     $staffType = $_POST["staffType"] ?? "";
+    $email = strtolower(trim($_POST["email"] ?? ""));
+    $password = $_POST["password"] ?? "";
 
-    if ($action == "Add") {
-        $message = $staffType . " will be added after the database is connected.";
-    }
 
-    if ($action == "Remove") {
-        $message = $staffType . " will be removed after the database is connected.";
+    if ($email == "") {
+
+        $message = "Please enter an email address.";
+
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+        $message = "Please enter a valid email address.";
+
+    } elseif ($action == "Add") {
+
+        if ($password == "") {
+
+            $message = "Please enter a password.";
+
+        } elseif (strlen($password) < 6) {
+
+            $message = "Password must be at least 6 characters.";
+
+        } elseif (isset($_SESSION["registeredUsers"][$email])) {
+
+            $message = "An account with this email already exists.";
+
+        } else {
+
+            $namePart = explode("@", $email)[0];
+
+            $staffName = ucwords(
+                str_replace(
+                    [".", "_", "-"],
+                    " ",
+                    $namePart
+                )
+            );
+
+
+            $_SESSION["registeredUsers"][$email] = [
+
+                "name" => $staffName,
+                "email" => $email,
+                "password" => password_hash(
+                    $password,
+                    PASSWORD_DEFAULT
+                ),
+                "phone" => "",
+                "role" => $staffType
+
+            ];
+
+
+            $message =
+                $staffType .
+                " account added successfully.";
+
+        }
+
+    } elseif ($action == "Remove") {
+
+        if (isset($_SESSION["registeredUsers"][$email])) {
+
+            if (
+                $_SESSION["registeredUsers"][$email]["role"]
+                == $staffType
+            ) {
+
+                unset(
+                    $_SESSION["registeredUsers"][$email]
+                );
+
+                $message =
+                    $staffType .
+                    " account removed successfully.";
+
+            } else {
+
+                $message =
+                    "This account is not a " .
+                    $staffType .
+                    " account.";
+
+            }
+
+        } else {
+
+            $message = "Account not found.";
+
+        }
+
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -115,9 +232,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
 
-        <a href="login.php" class="logout">
-            Logout
-        </a>
+       <a href="logout.php" class="logout">
+    Logout
+</a>
 
 
     </aside>

@@ -1,10 +1,20 @@
 <?php
 session_start();
 
-$userName = $_SESSION["userName"] ?? "Nafis Rahman";
-$userRole = $_SESSION["userRole"] ?? "Citizen";
-$userEmail = $_SESSION["userEmail"] ?? "nafis.rahman@gmail.com";
-$userPhone = $_SESSION["userPhone"] ?? "01700-000000";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$userName = $_SESSION["userName"];
+$userRole = $_SESSION["userRole"];
+$userEmail = $_SESSION["userEmail"];
+$userPhone = $_SESSION["userPhone"] ?? "";
 
 /* Citizen information */
 $address = $_SESSION["address"] ?? "Bashundhara Residential Area";
@@ -143,7 +153,7 @@ if ($userRole == "Police") {
         </div>
 
 
-        <a href="../utsa_Mazumdar/View/login.php" class="logout">Logout</a>
+        <a href="../utsa_Mazumdar/logout.php" class="logout">Logout</a>
 
     </aside>
 

@@ -1,7 +1,24 @@
 <?php
 session_start();
 
-$policeName = $_SESSION["userName"] ?? "Police Officer";
+
+if (
+    !isset($_SESSION["loggedIn"]) ||
+    $_SESSION["loggedIn"] !== true
+) {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+if ($_SESSION["userRole"] != "Police") {
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$policeName = $_SESSION["userName"];
+
 
 $posts = [
     [
@@ -381,8 +398,7 @@ foreach ($posts as $post) {
 
 
         <a
-            href="../utsa_Mazumdar/View/login.php"
-            class="logout-btn"
+            <a href="../utsa_Mazumdar/logout.php" class="logout-btn">
         >
 
             Logout

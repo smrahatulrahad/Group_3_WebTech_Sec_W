@@ -11,10 +11,8 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
 }
 
 
-$email = trim($_POST["email"] ?? "");
-
+$email = strtolower(trim($_POST["email"] ?? ""));
 $password = $_POST["password"] ?? "";
-
 
 
 /* Check email */
@@ -25,11 +23,9 @@ if ($email == "") {
         "Please enter your email.";
 
     header("Location: login.php");
-
     exit();
 
 }
-
 
 
 /* Check password */
@@ -40,11 +36,9 @@ if ($password == "") {
         "Please enter your password.";
 
     header("Location: login.php");
-
     exit();
 
 }
-
 
 
 /*
@@ -101,9 +95,7 @@ $demoUsers = [
 ];
 
 
-
 $userFound = false;
-
 
 
 /* Check demo accounts */
@@ -121,12 +113,13 @@ if (isset($demoUsers[$email])) {
         $_SESSION["userEmail"] =
             $email;
 
+        $_SESSION["userPhone"] = "";
+
         $userFound = true;
 
     }
 
 }
-
 
 
 /* Check newly registered accounts */
@@ -157,52 +150,55 @@ if (
             $registeredUser["email"];
 
         $_SESSION["userPhone"] =
-            $registeredUser["phone"];
+            $registeredUser["phone"] ?? "";
 
 
+        /* Citizen information */
 
         if ($registeredUser["role"] == "Citizen") {
 
             $_SESSION["district"] =
-                $registeredUser["district"];
+                $registeredUser["district"] ?? "";
 
             $_SESSION["upazila"] =
-                $registeredUser["upazila"];
+                $registeredUser["upazila"] ?? "";
 
             $_SESSION["address"] =
-                $registeredUser["area"] .
+                ($registeredUser["area"] ?? "") .
                 ", " .
-                $registeredUser["union"];
+                ($registeredUser["union"] ?? "");
 
             $_SESSION["nid"] =
-                $registeredUser["nid"];
+                $registeredUser["nid"] ?? "";
 
         }
 
 
+        /* Police information */
 
         if ($registeredUser["role"] == "Police") {
 
             $_SESSION["rank"] =
-                $registeredUser["rank"];
+                $registeredUser["rank"] ?? "";
 
             $_SESSION["stationName"] =
-                $registeredUser["station"];
+                $registeredUser["station"] ?? "";
 
             $_SESSION["badgeNumber"] =
-                $registeredUser["badge"];
+                $registeredUser["badge"] ?? "";
 
         }
 
 
+        /* Journalist information */
 
         if ($registeredUser["role"] == "Journalist") {
 
             $_SESSION["channelName"] =
-                $registeredUser["channel"];
+                $registeredUser["channel"] ?? "";
 
             $_SESSION["journalistId"] =
-                $registeredUser["journalistId"];
+                $registeredUser["journalistId"] ?? "";
 
         }
 
@@ -214,7 +210,6 @@ if (
 }
 
 
-
 /* Invalid login */
 
 if ($userFound == false) {
@@ -223,11 +218,9 @@ if ($userFound == false) {
         "Invalid email address or password.";
 
     header("Location: login.php");
-
     exit();
 
 }
-
 
 
 /* Login successful */
@@ -235,7 +228,6 @@ if ($userFound == false) {
 session_regenerate_id(true);
 
 $_SESSION["loggedIn"] = true;
-
 
 
 /* Redirect according to role */
@@ -251,7 +243,6 @@ if ($_SESSION["userRole"] == "Citizen") {
 }
 
 
-
 if ($_SESSION["userRole"] == "Journalist") {
 
     header(
@@ -263,7 +254,6 @@ if ($_SESSION["userRole"] == "Journalist") {
 }
 
 
-
 if ($_SESSION["userRole"] == "Police") {
 
     header(
@@ -273,7 +263,6 @@ if ($_SESSION["userRole"] == "Police") {
     exit();
 
 }
-
 
 
 if (
@@ -290,12 +279,10 @@ if (
 }
 
 
-
 $_SESSION["loginError"] =
     "User role is not recognized.";
 
 header("Location: login.php");
-
 exit();
 
 ?>
