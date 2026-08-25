@@ -124,7 +124,7 @@ if ($userRole == "Police") {
                 <p>View your personal and account information.</p>
             </div>
 
-            <a href="#" class="editButton">Edit Profile</a>
+            <a href="EditProfile.php" class="editButton">Edit Profile</a>
 
         </div>
 
