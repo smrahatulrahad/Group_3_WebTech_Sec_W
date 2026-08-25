@@ -51,7 +51,7 @@ $posts = [
 
 <head>
     <title>CivicLens - Police Newsfeed</title>
-    <link rel="stylesheet" href="police.css">
+    <link rel="stylesheet" href="CSS/police.css">
 </head>
 
 <body>

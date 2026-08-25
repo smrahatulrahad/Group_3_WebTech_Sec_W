@@ -33,7 +33,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
 
     </div>
 
-
     <a href="UserNewsfeed.php" class="backTop">
         Back to Newsfeed
     </a>
@@ -60,13 +59,12 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
             </div>
 
         </div>
-
 
 
         <div class="menu">
@@ -91,16 +89,12 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                 Donation
             </a>
 
-            <a href="CreatePost.php" class="active">
-                Create Post
-            </a>
-
         </div>
 
 
-       <a href="../utsa_Mazumdar/View/login.php" class="logout">
-    Logout
-</a>
+        <a href="../utsa_Mazumdar/View/login.php" class="logout">
+            Logout
+        </a>
 
     </aside>
 
@@ -122,7 +116,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
 
 
         <div class="formCard">
-
 
             <form action="CreatePost.php" method="post" enctype="multipart/form-data">
 
@@ -207,7 +200,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                 </div>
 
 
-
                 <div class="locationGrid">
 
 
@@ -288,7 +280,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                     </div>
 
 
-
                     <div class="formGroup fullWidth">
 
                         <label>Area</label>
@@ -309,7 +300,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                 </div>
 
 
-
                 <div class="anonymousBox">
 
                     <input
@@ -328,7 +318,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                 <p class="emergencyNote">
                     Anonymous posting is not allowed for Emergency Posts.
                 </p>
-
 
 
                 <div class="mediaTitle">
@@ -391,7 +380,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
 
 
             </form>
-
 
         </div>
 

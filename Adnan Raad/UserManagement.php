@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <title>CivicLens - User Management</title>
 
-    <link rel="stylesheet" href="UserManagement.css">
+    <link rel="stylesheet" href="CSS/UserManagement.css">
 
 </head>
 

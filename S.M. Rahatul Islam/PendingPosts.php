@@ -18,6 +18,7 @@ if ($selectedPost == "1") {
     $body = "A drain cover near the school gate is broken and may cause accidents. Please repair it as soon as possible.";
     $createdAt = "20 Aug 2026, 06:30 PM";
 }
+
 if ($selectedPost == "2") {
     $postId = "102";
     $title = "Waterlogging After Heavy Rain";
@@ -62,9 +63,10 @@ if ($selectedPost == "2") {
             <div class="avatar">
                 <?php echo strtoupper(substr($userName, 0, 1)); ?>
             </div>
+
             <div>
                 <small>Signed in as</small>
-                <strong><?php echo $userName; ?></strong>
+                <strong><?php echo htmlspecialchars($userName); ?></strong>
             </div>
 
         </div>
@@ -86,6 +88,7 @@ if ($selectedPost == "2") {
 
 
         <a href="../utsa_Mazumdar/View/login.php" class="logout">Logout</a>
+
     </aside>
 
 
@@ -109,6 +112,7 @@ if ($selectedPost == "2") {
                 <div class="postItem">
 
                     <div class="postTop">
+
                         <div>
                             <h4>Broken Drain Cover Near School</h4>
                             <p>20 Aug 2026, 06:30 PM</p>
@@ -121,6 +125,7 @@ if ($selectedPost == "2") {
                     <p class="shortText">
                         A drain cover near the school gate is broken and may cause accidents.
                     </p>
+
                     <a href="PendingPosts.php?post=1" class="editButton">
                         Edit Post
                     </a>
@@ -137,6 +142,7 @@ if ($selectedPost == "2") {
                             <h4>Waterlogging After Heavy Rain</h4>
                             <p>20 Aug 2026, 04:10 PM</p>
                         </div>
+
                         <span class="emergencyBadge">Emergency</span>
 
                     </div>
@@ -156,6 +162,7 @@ if ($selectedPost == "2") {
 
 
             <section class="editSection">
+
                 <h3>Edit Post</h3>
 
 
@@ -175,6 +182,7 @@ if ($selectedPost == "2") {
 
 
                 <?php if ($selectedPost != "") { ?>
+
                     <form action="PendingPosts.php" method="post">
 
 
@@ -183,22 +191,24 @@ if ($selectedPost == "2") {
                         <input
                             type="text"
                             name="postId"
-                            value="<?php echo $postId; ?>"
+                            value="<?php echo htmlspecialchars($postId); ?>"
                             readonly
                         >
 
 
                         <label>Title</label>
+
                         <input
                             type="text"
                             name="title"
-                            value="<?php echo $title; ?>"
+                            value="<?php echo htmlspecialchars($title); ?>"
                         >
 
 
                         <label>Category</label>
 
                         <select name="category">
+
                             <option
                                 <?php
                                 if ($category == "Normal Post") {
@@ -208,6 +218,7 @@ if ($selectedPost == "2") {
                             >
                                 Normal Post
                             </option>
+
                             <option
                                 <?php
                                 if ($category == "Emergency Post") {
@@ -222,19 +233,21 @@ if ($selectedPost == "2") {
 
 
                         <label>Body</label>
-                        <textarea name="body"><?php echo $body; ?></textarea>
+
+                        <textarea name="body"><?php echo htmlspecialchars($body); ?></textarea>
 
 
                         <label>Created At</label>
 
                         <input
                             type="text"
-                            value="<?php echo $createdAt; ?>"
+                            value="<?php echo htmlspecialchars($createdAt); ?>"
                             readonly
                         >
 
 
                         <div class="formButtons">
+
                             <button type="submit" class="saveButton">
                                 Save Changes
                             </button>

@@ -13,6 +13,10 @@ if ($userRole == "Journalist") {
 if ($userRole == "Police") {
     $newsfeedPage = "../Adnan Raad/police.php";
 }
+
+if ($userRole == "Admin" || $userRole == "Moderator") {
+    $newsfeedPage = "../Adnan Raad/AdminNewsfeed.php";
+}
 ?>
 
 <!DOCTYPE html>
@@ -69,11 +73,11 @@ if ($userRole == "Police") {
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
                 <span>
-                    <?php echo $userRole; ?>
+                    <?php echo htmlspecialchars($userRole); ?>
                 </span>
 
             </div>
@@ -84,37 +88,71 @@ if ($userRole == "Police") {
 
         <div class="menu">
 
-            <a href="<?php echo $newsfeedPage; ?>">
-                Newsfeed
-            </a>
 
-            <a href="Profile.php">
-                Profile
-            </a>
+            <?php if ($userRole == "Admin" || $userRole == "Moderator") { ?>
 
-            <?php if ($userRole == "Citizen") { ?>
 
-                <a href="PendingPosts.php">
-                    Pending Posts
+                <a href="../Adnan Raad/AdminNewsfeed.php">
+                    Newsfeed
                 </a>
+
+                <a href="ShowCases.php" class="active">
+                    Case Status
+                </a>
+
+                <a href="../utsa_Mazumdar/View/PostApproval.php">
+                    Post Approval
+                </a>
+
+                <a href="../utsa_Mazumdar/View/StaffManagement.php">
+                    Staff Management
+                </a>
+
+                <a href="../Adnan Raad/UserManagement.php">
+                    User Management
+                </a>
+
+
+            <?php } else { ?>
+
+
+                <a href="<?php echo $newsfeedPage; ?>">
+                    Newsfeed
+                </a>
+
+                <a href="Profile.php">
+                    Profile
+                </a>
+
+
+                <?php if ($userRole == "Citizen") { ?>
+
+                    <a href="PendingPosts.php">
+                        Pending Posts
+                    </a>
+
+                <?php } ?>
+
+
+                <a href="ShowCases.php" class="active">
+                    Show Cases
+                </a>
+
+
+                <?php if ($userRole == "Citizen") { ?>
+
+                    <a href="Donation.php">
+                        Donation
+                    </a>
+
+                <?php } ?>
+
 
             <?php } ?>
 
-
-            <a href="ShowCases.php" class="active">
-                Show Cases
-            </a>
-
-
-            <?php if ($userRole == "Citizen") { ?>
-
-                <a href="Donation.php">
-                    Donation
-                </a>
-
-            <?php } ?>
 
         </div>
+
 
         <a href="../utsa_Mazumdar/View/login.php" class="logout">
             Logout
@@ -180,6 +218,7 @@ if ($userRole == "Police") {
                         <tr>
 
                             <td>#1001</td>
+
                             <td>
                                 <a href="<?php echo $newsfeedPage; ?>">
                                     Broken Drain Cover Near School
@@ -193,6 +232,8 @@ if ($userRole == "Police") {
                             </td>
 
                         </tr>
+
+
 
                         <tr>
 
@@ -231,6 +272,8 @@ if ($userRole == "Police") {
                             </td>
 
                         </tr>
+
+
 
                         <tr>
 

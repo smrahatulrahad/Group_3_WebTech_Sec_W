@@ -45,7 +45,7 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
 
             <div>
                 <small>Signed in as</small>
-                <strong><?php echo $userName; ?></strong>
+                <strong><?php echo htmlspecialchars($userName); ?></strong>
             </div>
 
         </div>
@@ -53,15 +53,14 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
         <div class="menu">
 
             <a href="UserNewsfeed.php" class="active">Newsfeed</a>
+
             <a href="Profile.php">Profile</a>
+
             <a href="PendingPosts.php">Pending Posts</a>
+
             <a href="ShowCases.php">Show Cases</a>
 
-            <details>
-                <summary>Donation</summary>
-                <a href="Donation.php" class="subMenu">Money Donation</a>
-                <a href="Donation.php" class="subMenu">Blood Donation</a>
-            </details>
+            <a href="Donation.php">Donation</a>
 
         </div>
 

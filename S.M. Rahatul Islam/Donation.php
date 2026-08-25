@@ -33,7 +33,6 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
 
     </div>
 
-
     <a href="UserNewsfeed.php" class="backTop">
         Back to Newsfeed
     </a>
@@ -60,13 +59,12 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo $userName; ?>
+                    <?php echo htmlspecialchars($userName); ?>
                 </strong>
 
             </div>
 
         </div>
-
 
 
         <div class="menu">
@@ -95,10 +93,9 @@ $userName = $_SESSION["userName"] ?? "Nafis Rahman";
 
 
         <a href="../utsa_Mazumdar/View/login.php" class="logout">
+            Logout
+        </a>
 
-Logout
-
-</a>
 
     </aside>
 
@@ -308,7 +305,6 @@ Logout
 
 
             </section>
-
 
         </div>
 
