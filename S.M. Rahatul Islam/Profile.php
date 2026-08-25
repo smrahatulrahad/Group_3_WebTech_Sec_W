@@ -140,11 +140,13 @@ if ($userRole == "Police") {
                 </div>
 
                 <div class="profileName">
+
                     <h3><?php echo htmlspecialchars($userName); ?></h3>
 
                     <span class="roleBadge">
                         <?php echo htmlspecialchars($userRole); ?>
                     </span>
+
                 </div>
 
             </div>
