@@ -89,9 +89,22 @@ if ($userRole == "Police") {
 
             <a href="Profile.php" class="active">Profile</a>
 
-            <a href="PendingPosts.php">Pending Posts</a>
+
+            <?php if ($userRole == "Citizen") { ?>
+
+                <a href="PendingPosts.php">Pending Posts</a>
+
+            <?php } ?>
+
 
             <a href="ShowCases.php">Show Cases</a>
+
+
+            <?php if ($userRole == "Citizen") { ?>
+
+                <a href="Donation.php">Donation</a>
+
+            <?php } ?>
 
         </div>
 
@@ -128,6 +141,7 @@ if ($userRole == "Police") {
 
                 <div class="profileName">
                     <h3><?php echo htmlspecialchars($userName); ?></h3>
+
                     <span class="roleBadge">
                         <?php echo htmlspecialchars($userRole); ?>
                     </span>
