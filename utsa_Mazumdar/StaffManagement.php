@@ -1,8 +1,13 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
 
-/* User must be logged in */
+
+/* =========================
+   LOGIN CHECK
+   ========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -15,7 +20,9 @@ if (
 }
 
 
-/* Only Admin or Moderator can access this page */
+/* =========================
+   ROLE CHECK
+   ========================= */
 
 if (
     $_SESSION["userRole"] != "Admin" &&
@@ -33,92 +40,244 @@ $userRole = $_SESSION["userRole"];
 
 $message = "";
 
-if (!isset($_SESSION["registeredUsers"])) {
-    $_SESSION["registeredUsers"] = [];
-}
 
+/* =========================
+   DATABASE CONNECTION
+   ========================= */
+
+$database = new DatabaseConnection();
+
+$connection = $database->openConnection();
+
+
+
+/* =========================
+   ADD / REMOVE STAFF
+   ========================= */
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $action = $_POST["action"] ?? "";
+
     $staffType = $_POST["staffType"] ?? "";
-    $email = strtolower(trim($_POST["email"] ?? ""));
+
+    $email = strtolower(
+        trim($_POST["email"] ?? "")
+    );
+
     $password = $_POST["password"] ?? "";
 
 
-    if ($email == "") {
 
-        $message = "Please enter an email address.";
+    /* Check staff type */
 
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if (
+        $staffType != "Admin" &&
+        $staffType != "Moderator"
+    ) {
 
-        $message = "Please enter a valid email address.";
+        $message = "Invalid staff type.";
 
-    } elseif ($action == "Add") {
+    }
+
+
+    /* Only Admin can manage Admin */
+
+    elseif (
+        $staffType == "Admin" &&
+        $userRole != "Admin"
+    ) {
+
+        $message =
+            "Only Admin can manage Admin accounts.";
+
+    }
+
+
+    /* Check email */
+
+    elseif ($email == "") {
+
+        $message =
+            "Please enter an email address.";
+
+    }
+
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+        $message =
+            "Please enter a valid email address.";
+
+    }
+
+
+    /* =========================
+       ADD STAFF
+       ========================= */
+
+    elseif ($action == "Add") {
 
         if ($password == "") {
 
-            $message = "Please enter a password.";
-
-        } elseif (strlen($password) < 6) {
-
-            $message = "Password must be at least 6 characters.";
-
-        } elseif (isset($_SESSION["registeredUsers"][$email])) {
-
-            $message = "An account with this email already exists.";
-
-        } else {
-
-            $namePart = explode("@", $email)[0];
-
-            $staffName = ucwords(
-                str_replace(
-                    [".", "_", "-"],
-                    " ",
-                    $namePart
-                )
-            );
-
-
-            $_SESSION["registeredUsers"][$email] = [
-
-                "name" => $staffName,
-                "email" => $email,
-                "password" => password_hash(
-                    $password,
-                    PASSWORD_DEFAULT
-                ),
-                "phone" => "",
-                "role" => $staffType
-
-            ];
-
-
             $message =
-                $staffType .
-                " account added successfully.";
+                "Please enter a password.";
 
         }
 
-    } elseif ($action == "Remove") {
+        elseif (strlen($password) < 6) {
 
-        if (isset($_SESSION["registeredUsers"][$email])) {
+            $message =
+                "Password must be at least 6 characters.";
 
-            if (
-                $_SESSION["registeredUsers"][$email]["role"]
-                == $staffType
-            ) {
+        }
 
-                unset(
-                    $_SESSION["registeredUsers"][$email]
+        else {
+
+            /* Check if email already exists */
+
+            $result =
+                $database->getUserByEmail(
+                    $connection,
+                    $email
                 );
 
-                $message =
-                    $staffType .
-                    " account removed successfully.";
 
-            } else {
+            if ($result->num_rows > 0) {
+
+                $message =
+                    "This email already has an account.";
+
+            }
+
+            else {
+
+                /*
+                 * Create name from email
+                 */
+
+                $name = explode("@", $email)[0];
+
+                $name = str_replace(
+                    [".", "_", "-"],
+                    " ",
+                    $name
+                );
+
+                $name = ucwords($name);
+
+
+
+                /*
+                 * Hash password
+                 */
+
+                $hashedPassword =
+                    password_hash(
+                        $password,
+                        PASSWORD_DEFAULT
+                    );
+
+
+
+                /*
+                 * Use existing registerUser()
+                 */
+
+                $success =
+                    $database->registerUser(
+
+                        $connection,
+
+                        $name,
+
+                        $email,
+
+                        $hashedPassword,
+
+                        "",
+
+                        $staffType,
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        "",
+
+                        ""
+
+                    );
+
+
+                if ($success) {
+
+                    $message =
+                        $staffType .
+                        " added successfully.";
+
+                }
+
+                else {
+
+                    $message =
+                        "Could not add " .
+                        $staffType .
+                        ".";
+
+                }
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================
+       REMOVE STAFF
+       ========================= */
+
+    elseif ($action == "Remove") {
+
+        $result =
+            $database->getUserByEmail(
+                $connection,
+                $email
+            );
+
+
+        if ($result->num_rows == 0) {
+
+            $message =
+                "Account not found.";
+
+        }
+
+        else {
+
+            $user =
+                $result->fetch_assoc();
+
+
+            if ($user["role"] != $staffType) {
 
                 $message =
                     "This account is not a " .
@@ -127,14 +286,87 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             }
 
-        } else {
+            elseif (
+                isset($_SESSION["userEmail"]) &&
+                strtolower(
+                    $_SESSION["userEmail"]
+                ) ==
+                strtolower(
+                    $user["email"]
+                )
+            ) {
 
-            $message = "Account not found.";
+                $message =
+                    "You cannot remove your own account.";
+
+            }
+
+            else {
+
+                $success =
+                    $database->deleteUser(
+                        $connection,
+                        $user["id"]
+                    );
+
+
+                if ($success) {
+
+                    $message =
+                        $staffType .
+                        " removed successfully.";
+
+                }
+
+                else {
+
+                    $message =
+                        "Could not remove " .
+                        $staffType .
+                        ".";
+
+                }
+
+            }
 
         }
 
     }
+
 }
+
+
+
+/* =========================
+   GET ADMIN LIST
+   ========================= */
+
+$adminResult = $connection->query(
+    "SELECT id, fullname, email, role
+     FROM users
+     WHERE role = 'Admin'
+     ORDER BY id ASC"
+);
+
+
+
+/* =========================
+   GET MODERATOR LIST
+   ========================= */
+
+$moderatorResult = $connection->query(
+    "SELECT id, fullname, email, role
+     FROM users
+     WHERE role = 'Moderator'
+     ORDER BY id ASC"
+);
+
+
+$adminCount =
+    $adminResult->num_rows;
+
+$moderatorCount =
+    $moderatorResult->num_rows;
 
 ?>
 
@@ -145,11 +377,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>CivicLens - Staff Management</title>
 
-    <link rel="stylesheet" href="CSS/StaffManagement.css">
+    <link
+        rel="stylesheet"
+        href="CSS/StaffManagement.css"
+    >
 
 </head>
 
@@ -168,7 +406,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
 
-    <a href="../Adnan Raad/AdminNewsfeed.php" class="backTop">
+    <a
+        href="../Adnan Raad/AdminNewsfeed.php"
+        class="backTop"
+    >
         Back to Admin Newsfeed
     </a>
 
@@ -185,7 +426,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="userInfo">
 
             <div class="avatar">
-                <?php echo strtoupper(substr($userName, 0, 1)); ?>
+
+                <?php
+
+                echo strtoupper(
+                    substr($userName, 0, 1)
+                );
+
+                ?>
+
             </div>
 
 
@@ -194,11 +443,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo htmlspecialchars($userName); ?>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $userName
+                    );
+
+                    ?>
+
                 </strong>
 
                 <span>
-                    <?php echo htmlspecialchars($userRole); ?>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $userRole
+                    );
+
+                    ?>
+
                 </span>
 
             </div>
@@ -209,11 +474,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="menu">
 
-            <a href="../Adnan Raad/AdminNewsfeed.php">
+            <a
+                href="../Adnan Raad/AdminNewsfeed.php"
+            >
                 Newsfeed
             </a>
 
-            <a href="../S.M. Rahatul Islam/ShowCases.php">
+            <a
+                href="../S.M. Rahatul Islam/ShowCases.php"
+            >
                 Case Status
             </a>
 
@@ -221,20 +490,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 Post Approval
             </a>
 
-            <a href="StaffManagement.php" class="active">
+            <a
+                href="StaffManagement.php"
+                class="active"
+            >
                 Staff Management
             </a>
 
-            <a href="../Adnan Raad/UserManagement.php">
+            <a
+                href="../Adnan Raad/UserManagement.php"
+            >
                 User Management
             </a>
 
         </div>
 
 
-       <a href="logout.php" class="logout">
-    Logout
-</a>
+        <a
+            href="logout.php"
+            class="logout"
+        >
+            Logout
+        </a>
 
 
     </aside>
@@ -258,7 +535,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             <span class="roleBadge">
-                <?php echo htmlspecialchars($userRole); ?>
+
+                <?php
+
+                echo htmlspecialchars(
+                    $userRole
+                );
+
+                ?>
+
             </span>
 
         </div>
@@ -268,12 +553,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php if ($message != "") { ?>
 
             <div class="message">
-                <?php echo htmlspecialchars($message); ?>
+
+                <?php
+
+                echo htmlspecialchars(
+                    $message
+                );
+
+                ?>
+
             </div>
 
         <?php } ?>
 
 
+
+        <!-- =========================
+             ADMIN LIST
+             ========================= -->
 
         <?php if ($userRole == "Admin") { ?>
 
@@ -293,7 +590,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     </div>
 
-                    <span>3 Admins</span>
+
+                    <span>
+
+                        <?php echo $adminCount; ?>
+
+                        Admins
+
+                    </span>
 
                 </div>
 
@@ -311,9 +615,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <th>Admin ID</th>
 
-                                <th>Email</th>
+                                <th>Name</th>
 
-                                <th>Last Login (UTC)</th>
+                                <th>Email</th>
 
                             </tr>
 
@@ -324,39 +628,84 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <tbody>
 
 
-                            <tr>
+                        <?php
 
-                                <td>1</td>
+                        if ($adminResult->num_rows > 0) {
 
-                                <td>admin1@civiclens.com</td>
+                            while (
+                                $admin =
+                                $adminResult->fetch_assoc()
+                            ) {
 
-                                <td>20 Aug 2026, 03:20 PM</td>
-
-                            </tr>
-
-
-
-                            <tr>
-
-                                <td>2</td>
-
-                                <td>admin2@civiclens.com</td>
-
-                                <td>19 Aug 2026, 11:45 AM</td>
-
-                            </tr>
-
-
+                        ?>
 
                             <tr>
 
-                                <td>3</td>
+                                <td>
 
-                                <td>admin3@civiclens.com</td>
+                                    <?php
 
-                                <td>18 Aug 2026, 08:10 PM</td>
+                                    echo htmlspecialchars(
+                                        $admin["id"]
+                                    );
+
+                                    ?>
+
+                                </td>
+
+
+                                <td>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $admin["fullname"]
+                                    );
+
+                                    ?>
+
+                                </td>
+
+
+                                <td>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $admin["email"]
+                                    );
+
+                                    ?>
+
+                                </td>
 
                             </tr>
+
+                        <?php
+
+                            }
+
+                        }
+
+                        else {
+
+                        ?>
+
+                            <tr>
+
+                                <td colspan="3">
+
+                                    No Admin accounts found.
+
+                                </td>
+
+                            </tr>
+
+                        <?php
+
+                        }
+
+                        ?>
 
 
                         </tbody>
@@ -369,10 +718,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-                <form action="StaffManagement.php" method="post" class="manageForm">
+                <form
+                    action="StaffManagement.php"
+                    method="post"
+                    class="manageForm"
+                >
 
 
-                    <input type="hidden" name="staffType" value="Admin">
+                    <input
+                        type="hidden"
+                        name="staffType"
+                        value="Admin"
+                    >
 
 
                     <div class="formGroup">
@@ -383,6 +740,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             type="email"
                             name="email"
                             placeholder="Enter admin email"
+                            required
                         >
 
                     </div>
@@ -391,12 +749,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <div class="formGroup">
 
-                        <label>Assigned Password</label>
+                        <label>Password</label>
 
                         <input
                             type="password"
                             name="password"
                             placeholder="Enter password"
+                            required
                         >
 
                     </div>
@@ -413,6 +772,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         >
                             Add Admin
                         </button>
+
 
                         <button
                             type="submit"
@@ -436,6 +796,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
+        <!-- =========================
+             MODERATOR LIST
+             ========================= -->
+
         <section class="staffSection">
 
 
@@ -452,7 +816,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
 
-                <span>3 Moderators</span>
+                <span>
+
+                    <?php echo $moderatorCount; ?>
+
+                    Moderators
+
+                </span>
 
             </div>
 
@@ -470,9 +840,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             <th>Moderator ID</th>
 
-                            <th>Email</th>
+                            <th>Name</th>
 
-                            <th>Last Login (UTC)</th>
+                            <th>Email</th>
 
                         </tr>
 
@@ -483,39 +853,86 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <tbody>
 
 
-                        <tr>
+                    <?php
 
-                            <td>1</td>
+                    if (
+                        $moderatorResult->num_rows > 0
+                    ) {
 
-                            <td>moderator1@civiclens.com</td>
+                        while (
+                            $moderator =
+                            $moderatorResult->fetch_assoc()
+                        ) {
 
-                            <td>20 Aug 2026, 05:40 PM</td>
-
-                        </tr>
-
-
-
-                        <tr>
-
-                            <td>2</td>
-
-                            <td>moderator2@civiclens.com</td>
-
-                            <td>20 Aug 2026, 10:15 AM</td>
-
-                        </tr>
-
-
+                    ?>
 
                         <tr>
 
-                            <td>3</td>
+                            <td>
 
-                            <td>moderator3@civiclens.com</td>
+                                <?php
 
-                            <td>17 Aug 2026, 07:25 PM</td>
+                                echo htmlspecialchars(
+                                    $moderator["id"]
+                                );
+
+                                ?>
+
+                            </td>
+
+
+                            <td>
+
+                                <?php
+
+                                echo htmlspecialchars(
+                                    $moderator["fullname"]
+                                );
+
+                                ?>
+
+                            </td>
+
+
+                            <td>
+
+                                <?php
+
+                                echo htmlspecialchars(
+                                    $moderator["email"]
+                                );
+
+                                ?>
+
+                            </td>
 
                         </tr>
+
+                    <?php
+
+                        }
+
+                    }
+
+                    else {
+
+                    ?>
+
+                        <tr>
+
+                            <td colspan="3">
+
+                                No Moderator accounts found.
+
+                            </td>
+
+                        </tr>
+
+                    <?php
+
+                    }
+
+                    ?>
 
 
                     </tbody>
@@ -528,10 +945,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-            <form action="StaffManagement.php" method="post" class="manageForm">
+            <form
+                action="StaffManagement.php"
+                method="post"
+                class="manageForm"
+            >
 
 
-                <input type="hidden" name="staffType" value="Moderator">
+                <input
+                    type="hidden"
+                    name="staffType"
+                    value="Moderator"
+                >
 
 
                 <div class="formGroup">
@@ -542,6 +967,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         type="email"
                         name="email"
                         placeholder="Enter moderator email"
+                        required
                     >
 
                 </div>
@@ -550,12 +976,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div class="formGroup">
 
-                    <label>Assigned Password</label>
+                    <label>Password</label>
 
                     <input
                         type="password"
                         name="password"
                         placeholder="Enter password"
+                        required
                     >
 
                 </div>
@@ -572,6 +999,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     >
                         Add Moderator
                     </button>
+
 
                     <button
                         type="submit"
@@ -600,3 +1028,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </body>
 
 </html>
+
+
+<?php
+
+$connection->close();
+
+?>

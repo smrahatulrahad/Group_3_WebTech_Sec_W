@@ -1,7 +1,11 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
 
+
+// Check login
 if (
     !isset($_SESSION["loggedIn"]) ||
     $_SESSION["loggedIn"] !== true
@@ -11,6 +15,7 @@ if (
 }
 
 
+// Check Admin or Moderator
 if (
     $_SESSION["userRole"] != "Admin" &&
     $_SESSION["userRole"] != "Moderator"
@@ -20,92 +25,226 @@ if (
 }
 
 
-$userName = $_SESSION["userName"];
-$userRole = $_SESSION["userRole"];
-
-$selectedPost = $_GET["post"] ?? "";
-$message = "";
-
-$postId = "";
-$title = "";
-$author = "";
-$createdAt = "";
-$postType = "";
-$body = "";
-$imageName = "";
-$hasVideo = false;
+$database = new DatabaseConnection();
+$connection = $database->openConnection();
 
 
-if ($selectedPost == "1") {
+// Get current user
+$userResult = $database->getUserById(
+    $connection,
+    $_SESSION["userId"]
+);
 
-    $postId = "201";
-    $title = "Broken Drain Cover Near School";
-    $author = "Rahim Ahmed";
-    $createdAt = "20 Aug 2026, 06:30 PM";
-    $postType = "Normal Post";
-    $body = "A drain cover near the school gate is broken and may cause accidents. Please repair it as soon as possible.";
-    $imageName = "broken_drain.jpg";
-    $hasVideo = false;
+if ($userResult->num_rows == 0) {
 
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
+    header("Location: login.php");
+    exit();
+}
+
+$user = $userResult->fetch_assoc();
+
+
+// Check user status
+if (
+    $user["status"] == "Disabled" ||
+    ($user["role"] != "Admin" && $user["role"] != "Moderator")
+) {
+
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
+    header("Location: login.php");
+    exit();
 }
 
 
-if ($selectedPost == "2") {
-
-    $postId = "202";
-    $title = "Waterlogging After Heavy Rain";
-    $author = "Nabila Islam";
-    $createdAt = "20 Aug 2026, 04:10 PM";
-    $postType = "Emergency Post";
-    $body = "Heavy rain has caused severe waterlogging in the residential road. People are having difficulty using the road.";
-    $imageName = "waterlogging.jpg";
-    $hasVideo = true;
-
-}
+$userId = $user["id"];
+$userName = $user["fullname"];
+$userRole = $user["role"];
 
 
-if ($selectedPost == "3") {
-
-    $postId = "203";
-    $title = "Street Light Not Working";
-    $author = "Tanvir Hasan";
-    $createdAt = "19 Aug 2026, 10:05 PM";
-    $postType = "Normal Post";
-    $body = "Several street lights beside the community park have not been working for the last few days.";
-    $imageName = "";
-    $hasVideo = false;
-
-}
+// Keep current user information in session
+$_SESSION["userName"] = $userName;
+$_SESSION["userRole"] = $userRole;
+$_SESSION["userEmail"] = $user["email"];
 
 
-if (!isset($_SESSION["postStatus"])) {
-    $_SESSION["postStatus"] = [];
-}
-
-
+// Approve or Reject post
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
+    $postId = (int)($_POST["postId"] ?? 0);
     $decision = $_POST["decision"] ?? "";
 
     if (
-        $selectedPost != "" &&
+        $postId > 0 &&
         ($decision == "Approve" || $decision == "Reject")
     ) {
 
-        $_SESSION["postStatus"][$selectedPost] = $decision;
-
+        // Convert button value to database status
         if ($decision == "Approve") {
-            $message = "Post approved successfully.";
+            $status = "Approved";
+        } else {
+            $status = "Rejected";
         }
 
-        if ($decision == "Reject") {
-            $message = "Post rejected successfully.";
+
+        // Check if post is still Pending
+        $sql = "SELECT id FROM posts
+                WHERE id = ?
+                AND status = 'Pending'";
+
+        $statement = $connection->prepare($sql);
+        $statement->bind_param("i", $postId);
+        $statement->execute();
+
+        $result = $statement->get_result();
+
+
+        if ($result->num_rows > 0) {
+
+            // Update post status
+            $updated = $database->updatePostStatus(
+                $connection,
+                $postId,
+                $status,
+                $userId
+            );
+
+            $statement->close();
+            $connection->close();
+
+
+            if ($updated) {
+
+                if ($status == "Approved") {
+                    header("Location: PostApproval.php?message=approved");
+                } else {
+                    header("Location: PostApproval.php?message=rejected");
+                }
+
+            } else {
+
+                header("Location: PostApproval.php?message=error");
+
+            }
+
+            exit();
+
         }
+
+
+        $statement->close();
+    }
+
+
+    $connection->close();
+
+    header("Location: PostApproval.php?message=notfound");
+    exit();
+}
+
+
+// Message
+$message = "";
+
+$messageType = $_GET["message"] ?? "";
+
+if ($messageType == "approved") {
+
+    $message = "Post approved successfully.";
+
+} elseif ($messageType == "rejected") {
+
+    $message = "Post rejected successfully.";
+
+} elseif ($messageType == "notfound") {
+
+    $message = "The selected post was not found or is no longer pending.";
+
+} elseif ($messageType == "error") {
+
+    $message = "The post could not be updated. Please try again.";
+}
+
+
+// Search
+$searchText = trim($_GET["search"] ?? "");
+
+
+// Get pending posts
+$result = $database->getPendingPosts($connection);
+
+$pendingPosts = [];
+
+while ($row = $result->fetch_assoc()) {
+
+    if ($searchText != "") {
+
+        $searchData =
+            $row["title"] . " " .
+            $row["description"] . " " .
+            $row["fullname"] . " " .
+            $row["post_type"];
+
+        if (stripos($searchData, $searchText) === false) {
+            continue;
+        }
+    }
+
+    $pendingPosts[] = $row;
+}
+
+
+// Select one post for review
+$selectedPostId = (int)($_GET["post"] ?? 0);
+
+$selectedPost = null;
+
+
+if ($selectedPostId > 0) {
+
+    $sql = "SELECT posts.*, users.fullname
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            WHERE posts.id = ?
+            AND posts.status = 'Pending'";
+
+    $statement = $connection->prepare($sql);
+
+    $statement->bind_param("i", $selectedPostId);
+
+    $statement->execute();
+
+    $result = $statement->get_result();
+
+
+    if ($result->num_rows > 0) {
+
+        $selectedPost = $result->fetch_assoc();
+
+    } else {
+
+        $message = "The selected post was not found or is no longer pending.";
 
     }
 
+    $statement->close();
 }
+
+
+$connection->close();
+
+$pendingCount = count($pendingPosts);
+
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -114,11 +253,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>CivicLens - Post Approval</title>
 
-    <link rel="stylesheet" href="CSS/PostApproval.css">
+    <link
+        rel="stylesheet"
+        href="CSS/PostApproval.css"
+    >
 
 </head>
 
@@ -137,12 +282,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
 
-    <a href="../Adnan Raad/AdminNewsfeed.php" class="backTop">
+    <a
+        href="../Adnan Raad/AdminNewsfeed.php"
+        class="backTop"
+    >
         Back to Admin Newsfeed
     </a>
 
 </header>
-
 
 
 <div class="pageContainer">
@@ -156,7 +303,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="avatar">
 
-                <?php echo strtoupper(substr($userName, 0, 1)); ?>
+                <?php
+
+                echo strtoupper(
+                    substr($userName, 0, 1)
+                );
+
+                ?>
 
             </div>
 
@@ -166,11 +319,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <small>Signed in as</small>
 
                 <strong>
-                    <?php echo htmlspecialchars($userName); ?>
+
+                    <?php
+
+                    echo htmlspecialchars($userName);
+
+                    ?>
+
                 </strong>
 
+
                 <span>
-                    <?php echo htmlspecialchars($userRole); ?>
+
+                    <?php
+
+                    echo htmlspecialchars($userRole);
+
+                    ?>
+
                 </span>
 
             </div>
@@ -179,45 +345,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
 
-
         <div class="menu">
-
 
             <a href="../Adnan Raad/AdminNewsfeed.php">
                 Newsfeed
             </a>
 
-
             <a href="../S.M. Rahatul Islam/ShowCases.php">
                 Case Status
             </a>
 
-
-            <a href="PostApproval.php" class="active">
+            <a
+                href="PostApproval.php"
+                class="active"
+            >
                 Post Approval
             </a>
-
 
             <a href="StaffManagement.php">
                 Staff Management
             </a>
 
-
             <a href="../Adnan Raad/UserManagement.php">
                 User Management
             </a>
 
-
         </div>
 
 
-        <a href="logout.php" class="logout">
-    Logout
-</a>
+        <a
+            href="logout.php"
+            class="logout"
+        >
+            Logout
+        </a>
 
 
     </aside>
-
 
 
     <main class="mainContent">
@@ -234,45 +398,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
 
-
         <?php if ($message != "") { ?>
-
 
             <div class="message">
 
-                <?php echo htmlspecialchars($message); ?>
+                <?php
+
+                echo htmlspecialchars($message);
+
+                ?>
 
             </div>
 
-
         <?php } ?>
-
 
 
         <div class="topTools">
 
 
-            <div class="searchBox">
+            <form
+                class="searchBox"
+                action="PostApproval.php"
+                method="get"
+            >
 
                 <input
                     type="text"
+                    name="search"
                     placeholder="Search pending posts..."
+                    value="<?php echo htmlspecialchars($searchText); ?>"
                 >
 
-                <button type="button">
+                <button type="submit">
                     Search
                 </button>
 
-            </div>
+            </form>
 
 
-            <a href="PostApproval.php" class="refreshButton">
+            <a
+                href="PostApproval.php"
+                class="refreshButton"
+            >
                 Refresh
             </a>
 
 
         </div>
-
 
 
         <div class="contentGrid">
@@ -285,100 +457,128 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <h3>Pending Posts</h3>
 
-                    <span>3 Posts</span>
+                    <span>
+
+                        <?php
+
+                        echo $pendingCount;
+
+                        echo $pendingCount == 1
+                            ? " Post"
+                            : " Posts";
+
+                        ?>
+
+                    </span>
 
                 </div>
 
 
+                <?php if ($pendingCount == 0) { ?>
 
-                <div class="postItem">
+                    <div class="emptyDetails">
 
-
-                    <div>
-
-                        <h4>
-                            Broken Drain Cover Near School
-                        </h4>
+                        <h4>No Pending Posts</h4>
 
                         <p>
-                            Rahim Ahmed
+                            No pending posts were found.
                         </p>
 
-                        <small>
-                            20 Aug 2026, 06:30 PM
-                        </small>
+                    </div>
+
+                <?php } ?>
+
+
+                <?php foreach ($pendingPosts as $post) { ?>
+
+
+                    <?php
+
+                    if ((int)$post["anonymous"] == 1) {
+
+                        $authorName = "Anonymous";
+
+                    } else {
+
+                        $authorName = $post["fullname"];
+
+                    }
+
+
+                    $createdAt = date(
+                        "d M Y, h:i A",
+                        strtotime($post["created_at"])
+                    );
+
+
+                    $isEmergency =
+                        $post["post_type"] == "Emergency Post";
+
+                    ?>
+
+
+                    <div
+                        class="postItem<?php echo $isEmergency ? " emergencyItem" : ""; ?>"
+                    >
+
+
+                        <div>
+
+                            <h4>
+
+                                <?php
+
+                                echo htmlspecialchars(
+                                    $post["title"]
+                                );
+
+                                ?>
+
+                            </h4>
+
+
+                            <p>
+
+                                <?php
+
+                                echo htmlspecialchars(
+                                    $authorName
+                                );
+
+                                ?>
+
+                            </p>
+
+
+                            <small>
+
+                                <?php
+
+                                echo htmlspecialchars(
+                                    $createdAt
+                                );
+
+                                ?>
+
+                            </small>
+
+                        </div>
+
+
+                        <a
+                            href="PostApproval.php?post=<?php echo (int)$post["id"]; ?>&search=<?php echo urlencode($searchText); ?>"
+                        >
+                            Review
+                        </a>
+
 
                     </div>
 
 
-                    <a href="PostApproval.php?post=1">
-                        Review
-                    </a>
-
-
-                </div>
-
-
-
-                <div class="postItem emergencyItem">
-
-
-                    <div>
-
-                        <h4>
-                            Waterlogging After Heavy Rain
-                        </h4>
-
-                        <p>
-                            Nabila Islam
-                        </p>
-
-                        <small>
-                            20 Aug 2026, 04:10 PM
-                        </small>
-
-                    </div>
-
-
-                    <a href="PostApproval.php?post=2">
-                        Review
-                    </a>
-
-
-                </div>
-
-
-
-                <div class="postItem">
-
-
-                    <div>
-
-                        <h4>
-                            Street Light Not Working
-                        </h4>
-
-                        <p>
-                            Tanvir Hasan
-                        </p>
-
-                        <small>
-                            19 Aug 2026, 10:05 PM
-                        </small>
-
-                    </div>
-
-
-                    <a href="PostApproval.php?post=3">
-                        Review
-                    </a>
-
-
-                </div>
+                <?php } ?>
 
 
             </section>
-
 
 
             <section class="detailsSection">
@@ -391,9 +591,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
 
-
-                <?php if ($selectedPost == "") { ?>
-
+                <?php if ($selectedPost === null) { ?>
 
                     <div class="emptyDetails">
 
@@ -405,15 +603,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     </div>
 
-
                 <?php } ?>
 
 
+                <?php if ($selectedPost !== null) { ?>
 
-                <?php if ($selectedPost != "") { ?>
+
+                    <?php
+
+                    if ((int)$selectedPost["anonymous"] == 1) {
+
+                        $selectedAuthor = "Anonymous";
+
+                    } else {
+
+                        $selectedAuthor =
+                            $selectedPost["fullname"];
+
+                    }
 
 
-                    <form action="PostApproval.php?post=<?php echo htmlspecialchars($selectedPost); ?>" method="post">
+                    $selectedCreatedAt = date(
+                        "d M Y, h:i A",
+                        strtotime(
+                            $selectedPost["created_at"]
+                        )
+                    );
+
+                    ?>
+
+
+                    <form
+                        action="PostApproval.php"
+                        method="post"
+                    >
+
+
+                        <input
+                            type="hidden"
+                            name="postId"
+                            value="<?php echo (int)$selectedPost["id"]; ?>"
+                        >
 
 
                         <div class="detailsGrid">
@@ -425,12 +655,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo htmlspecialchars($postId); ?>"
+                                    value="<?php echo (int)$selectedPost["id"]; ?>"
                                     readonly
                                 >
 
                             </div>
-
 
 
                             <div class="formGroup">
@@ -439,12 +668,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo htmlspecialchars($postType); ?>"
+                                    value="<?php echo htmlspecialchars($selectedPost["post_type"]); ?>"
                                     readonly
                                 >
 
                             </div>
-
 
 
                             <div class="formGroup fullWidth">
@@ -453,12 +681,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo htmlspecialchars($title); ?>"
+                                    value="<?php echo htmlspecialchars($selectedPost["title"]); ?>"
                                     readonly
                                 >
 
                             </div>
-
 
 
                             <div class="formGroup">
@@ -467,12 +694,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo htmlspecialchars($author); ?>"
+                                    value="<?php echo htmlspecialchars($selectedAuthor); ?>"
                                     readonly
                                 >
 
                             </div>
-
 
 
                             <div class="formGroup">
@@ -481,25 +707,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                                 <input
                                     type="text"
-                                    value="<?php echo htmlspecialchars($createdAt); ?>"
+                                    value="<?php echo htmlspecialchars($selectedCreatedAt); ?>"
                                     readonly
                                 >
 
                             </div>
 
 
-
                             <div class="formGroup fullWidth">
 
                                 <label>Body</label>
 
-                                <textarea readonly><?php echo htmlspecialchars($body); ?></textarea>
+                                <textarea readonly><?php echo htmlspecialchars($selectedPost["description"]); ?></textarea>
 
                             </div>
 
 
                         </div>
-
 
 
                         <div class="mediaGrid">
@@ -510,34 +734,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h4>Image</h4>
 
 
-                                <?php if ($imageName != "") { ?>
-
+                                <?php if (!empty($selectedPost["photo_path"])) { ?>
 
                                     <div class="imagePlaceholder">
-                                        Image Preview
+
+                                        <a
+                                            href="../<?php echo htmlspecialchars($selectedPost["photo_path"]); ?>"
+                                            target="_blank"
+                                        >
+                                            View Image
+                                        </a>
+
                                     </div>
 
+
                                     <p>
-                                        <?php echo htmlspecialchars($imageName); ?>
+
+                                        <?php
+
+                                        echo htmlspecialchars(
+                                            basename(
+                                                $selectedPost["photo_path"]
+                                            )
+                                        );
+
+                                        ?>
+
                                     </p>
 
 
-                                <?php } ?>
-
-
-                                <?php if ($imageName == "") { ?>
-
+                                <?php } else { ?>
 
                                     <div class="noMedia">
                                         No image attached
                                     </div>
 
-
                                 <?php } ?>
 
 
                             </div>
-
 
 
                             <div class="mediaBox">
@@ -545,29 +780,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h4>Video</h4>
 
 
-                                <?php if ($hasVideo == true) { ?>
-
+                                <?php if (!empty($selectedPost["video_path"])) { ?>
 
                                     <div class="videoPlaceholder">
                                         Video Attached
                                     </div>
 
 
-                                    <button type="button" class="playButton">
-                                        Play Video
-                                    </button>
+                                    <a
+                                        href="../<?php echo htmlspecialchars($selectedPost["video_path"]); ?>"
+                                        target="_blank"
+                                    >
+
+                                        <button
+                                            type="button"
+                                            class="playButton"
+                                        >
+                                            Play Video
+                                        </button>
+
+                                    </a>
 
 
-                                <?php } ?>
-
-
-                                <?php if ($hasVideo == false) { ?>
-
+                                <?php } else { ?>
 
                                     <div class="noMedia">
                                         No video attached
                                     </div>
-
 
                                 <?php } ?>
 
@@ -576,21 +815,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
                         </div>
-
-
-
-                        <div class="noteBox">
-
-                            <label>Moderator Note</label>
-
-                            <input
-                                type="text"
-                                name="moderatorNote"
-                                placeholder="Optional note for this decision"
-                            >
-
-                        </div>
-
 
 
                         <div class="decisionButtons">
@@ -616,7 +840,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </button>
 
 
-                            <a href="PostApproval.php" class="clearButton">
+                            <a
+                                href="PostApproval.php"
+                                class="clearButton"
+                            >
                                 Clear
                             </a>
 
