@@ -1,6 +1,13 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
+
+
+/* =========================
+   LOGIN CHECK
+========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -11,295 +18,365 @@ if (
 }
 
 
-if ($_SESSION["userRole"] != "Journalist") {
+/* =========================
+   ROLE CHECK
+========================= */
+
+if (
+    !isset($_SESSION["userRole"]) ||
+    $_SESSION["userRole"] != "Journalist"
+) {
     header("Location: ../utsa_Mazumdar/login.php");
     exit();
 }
 
 
-$journalistName = $_SESSION["userName"];
+/* =========================
+   DATABASE
+========================= */
 
-$posts = [
-    [
-        "id" => 1,
-        "title" => "Road Accident Near Airport",
-        "owner" => "Rahim Ahmed",
-        "date" => "20 Aug 2026",
-        "content" => "A serious road accident occurred near the airport road. Authorities have already been informed.",
-        "emergency" => true,
-        "covered" => false,
-        "video" => true
-    ],
-    [
-        "id" => 2,
-        "title" => "Broken Street Lights",
-        "owner" => "Karim Hasan",
-        "date" => "19 Aug 2026",
-        "content" => "Several street lights are not working in the residential area and residents are requesting action.",
-        "emergency" => false,
-        "covered" => true,
-        "video" => false
-    ],
-    [
-        "id" => 3,
-        "title" => "Garbage Collection Problem",
-        "owner" => "Nadia Islam",
-        "date" => "18 Aug 2026",
-        "content" => "Garbage has not been collected from the area for several days and is causing problems for residents.",
-        "emergency" => false,
-        "covered" => false,
-        "video" => false
-    ],
-    [
-        "id" => 4,
-        "title" => "Fire Reported in Local Market",
-        "owner" => "Arif Hossain",
-        "date" => "17 Aug 2026",
-        "content" => "A fire has been reported in a local market. Fire service and emergency responders are present.",
-        "emergency" => true,
-        "covered" => true,
-        "video" => true
-    ]
-];
+$database = new DatabaseConnection();
+$connection = $database->openConnection();
 
 
-/* Store covered posts in SESSION */
-if (!isset($_SESSION["journalistCoveredPosts"])) {
+/* =========================
+   CURRENT JOURNALIST
+========================= */
 
-    $_SESSION["journalistCoveredPosts"] = [];
-
-    foreach ($posts as $post) {
-
-        if ($post["covered"] == true) {
-            $_SESSION["journalistCoveredPosts"][] = $post["id"];
-        }
-
-    }
-
-}
+$journalistResult =
+    $database->getUserById(
+        $connection,
+        $_SESSION["userId"]
+    );
 
 
-/* Cover / Uncover post */
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if (
+    !$journalistResult ||
+    $journalistResult->num_rows == 0
+) {
+    $connection->close();
 
-    $postId = $_POST["postId"] ?? "";
+    session_unset();
+    session_destroy();
 
-    if ($postId != "") {
-
-        $postId = (int) $postId;
-
-        if (in_array($postId, $_SESSION["journalistCoveredPosts"])) {
-
-            $_SESSION["journalistCoveredPosts"] =
-                array_values(
-                    array_diff(
-                        $_SESSION["journalistCoveredPosts"],
-                        [$postId]
-                    )
-                );
-
-        } else {
-
-            $_SESSION["journalistCoveredPosts"][] = $postId;
-
-        }
-
-    }
-
-    header("Location: journalist.php");
+    header("Location: ../utsa_Mazumdar/login.php");
     exit();
 }
 
 
-/* Update covered state */
-foreach ($posts as $key => $post) {
+$journalist =
+    $journalistResult->fetch_assoc();
 
-    $posts[$key]["covered"] =
-        in_array(
-            $post["id"],
-            $_SESSION["journalistCoveredPosts"]
+
+if (
+    $journalist["role"] != "Journalist" ||
+    $journalist["status"] != "Active"
+) {
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$journalistId =
+    (int)$journalist["id"];
+
+$journalistName =
+    $journalist["fullname"];
+
+
+/* Update normal login session */
+
+$_SESSION["userName"] =
+    $journalist["fullname"];
+
+$_SESSION["userEmail"] =
+    $journalist["email"];
+
+$_SESSION["userRole"] =
+    $journalist["role"];
+
+
+/* =========================
+   COVER / UNCOVER
+========================= */
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $postId =
+        (int)($_POST["post_id"] ?? 0);
+
+    $action =
+        $_POST["action"] ?? "";
+
+
+    if ($postId > 0) {
+
+        /*
+            Journalist may cover only
+            an Approved post.
+        */
+
+        $postCheckStatement =
+            $connection->prepare(
+                "SELECT id
+                 FROM posts
+                 WHERE id = ?
+                 AND status = 'Approved'"
+            );
+
+
+        $postCheckStatement->bind_param(
+            "i",
+            $postId
         );
 
-}
+
+        $postCheckStatement->execute();
+
+        $postCheckResult =
+            $postCheckStatement->get_result();
+
+        $postCheckStatement->close();
 
 
-/* Search and Filter */
-$searchText = trim($_GET["search"] ?? "");
-$filter = $_GET["filter"] ?? "all";
+        if ($postCheckResult->num_rows > 0) {
 
-if (isset($_GET["reset"])) {
-    $searchText = "";
-    $filter = "all";
-}
+            if ($action == "cover") {
 
+                $database->addCoverage(
+                    $connection,
+                    $postId,
+                    $journalistId
+                );
 
-$filteredPosts = [];
-
-foreach ($posts as $post) {
-
-    $showPost = true;
+            }
 
 
-    if ($searchText != "") {
+            elseif ($action == "uncover") {
 
-        if (
-            stripos($post["title"], $searchText) === false &&
-            stripos($post["content"], $searchText) === false &&
-            stripos($post["owner"], $searchText) === false
-        ) {
+                $database->removeCoverage(
+                    $connection,
+                    $postId,
+                    $journalistId
+                );
 
-            $showPost = false;
+            }
 
         }
 
     }
 
 
-    if ($filter == "covered" && $post["covered"] == false) {
-        $showPost = false;
-    }
+    $connection->close();
 
-
-    if ($filter == "uncovered" && $post["covered"] == true) {
-        $showPost = false;
-    }
-
-
-    if ($showPost == true) {
-        $filteredPosts[] = $post;
-    }
+    header("Location: journalist.php");
+    exit();
 
 }
+
+
+/* =========================
+   GET POSTS
+========================= */
+
+$postsResult =
+    $database->getAllPosts(
+        $connection
+    );
+
 ?>
 
-<html>
+<!DOCTYPE html>
+
+<html lang="en">
 
 <head>
-    <title>CivicLens - Journalist Feed</title>
-    <link rel="stylesheet" href="CSS/journalist.css">
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        CivicLens - Journalist Feed
+    </title>
+
+
+    <link
+        rel="stylesheet"
+        href="CSS/journalist.css"
+    >
+
 </head>
+
 
 <body>
 
-<div class="header">
+
+<!-- =====================================
+     HEADER
+===================================== -->
+
+<header class="header">
+
 
     <div class="header-title">
+
         Journalist Feed
+
     </div>
 
 
-    <form class="search-area" action="journalist.php" method="get">
+
+    <!-- SEARCH AREA -->
+
+    <div class="search-area">
+
 
         <input
             type="text"
-            name="search"
+            id="searchInput"
             placeholder="Search posts..."
-            value="<?php echo htmlspecialchars($searchText); ?>"
         >
 
 
-        <button type="submit">
+        <button
+            type="button"
+            onclick="searchPosts()"
+        >
             Search
         </button>
 
 
-        <select name="filter">
 
-            <option
-                value="all"
-                <?php
-                if ($filter == "all") {
-                    echo "selected";
-                }
-                ?>
-            >
+        <select
+            id="filterSelect"
+            onchange="filterPosts()"
+        >
+
+            <option value="all">
                 All Posts
             </option>
 
-
-            <option
-                value="covered"
-                <?php
-                if ($filter == "covered") {
-                    echo "selected";
-                }
-                ?>
-            >
+            <option value="covered">
                 Covered by Me
             </option>
 
-
-            <option
-                value="uncovered"
-                <?php
-                if ($filter == "uncovered") {
-                    echo "selected";
-                }
-                ?>
-            >
+            <option value="uncovered">
                 Uncovered
             </option>
 
         </select>
 
 
+
         <button
-            type="submit"
-            name="reset"
-            value="1"
+            type="button"
+            onclick="refreshPage()"
         >
             Refresh
         </button>
 
-    </form>
-
-
-
-    <div class="header-right">
-
-        <span class="journalist-name">
-            <?php echo htmlspecialchars($journalistName); ?>
-        </span>
-
-        <a href="../utsa_Mazumdar/logout.php" class="logout-btn">
-            Logout
-        </a>
 
     </div>
 
-</div>
 
 
+    <!-- RIGHT SIDE -->
+
+    <div class="header-right">
+
+
+        <span class="journalist-name">
+
+            <?php
+
+            echo htmlspecialchars(
+                $journalistName
+            );
+
+            ?>
+
+        </span>
+
+
+
+        <a
+            href="../utsa_Mazumdar/logout.php"
+            class="logout-btn"
+        >
+            Logout
+        </a>
+
+
+    </div>
+
+
+</header>
+
+
+
+<!-- =====================================
+     PAGE
+===================================== -->
 
 <div class="page-container">
 
 
-    <div class="sidebar">
+    <!-- =====================================
+         LEFT SIDEBAR
+    ===================================== -->
+
+    <aside class="sidebar">
+
 
         <div class="sidebar-menu">
 
-            <a href="journalist.php" class="active">
+
+            <a
+                href="journalist.php"
+                class="active"
+            >
                 News Feed
             </a>
 
             <a href="../S.M. Rahatul Islam/Profile.php">
-                Profile
+              Profile
             </a>
 
-            <a href="../S.M. Rahatul Islam/ShowCases.php">
+
+            <a
+                href="../S.M. Rahatul Islam/ShowCases.php"
+            >
                 Show Cases
             </a>
 
+
         </div>
 
-    </div>
+
+    </aside>
 
 
 
-    <div class="main-content">
+    <!-- =====================================
+         MAIN CONTENT
+    ===================================== -->
+
+    <main class="main-content">
 
 
-        <div class="welcome-section">
+        <!-- WELCOME -->
+
+        <section class="welcome-section">
+
 
             <div>
 
@@ -307,62 +384,233 @@ foreach ($posts as $post) {
                     Journalist News Feed
                 </h2>
 
+
                 <p>
                     View approved citizen posts and select issues to cover.
                 </p>
 
             </div>
 
-        </div>
 
 
+            <a
+                href="../S.M. Rahatul Islam/ShowCases.php"
+                class="show-cases-btn"
+            >
+                Show Cases
+            </a>
+
+
+        </section>
+
+
+
+        <!-- RESULT BAR -->
 
         <div class="result-bar">
+
 
             <span>
                 Approved Posts
             </span>
 
+
             <span id="postCount">
-                <?php echo count($filteredPosts); ?> posts
+                0 posts
             </span>
+
 
         </div>
 
 
 
+        <!-- =====================================
+             POSTS
+        ===================================== -->
+
         <div id="postContainer">
 
 
-            <?php foreach ($filteredPosts as $post) { ?>
+            <?php
+
+            $approvedPostFound = false;
 
 
-                <?php
-
-                $emergencyClass = "";
-
-                if ($post["emergency"] == true) {
-                    $emergencyClass = "emergency-card";
-                }
-
-                ?>
+            if (
+                $postsResult &&
+                $postsResult->num_rows > 0
+            ) {
 
 
-                <div
-                    class="post-card <?php echo $emergencyClass; ?>"
-                    data-covered="<?php echo $post["covered"] ? "true" : "false"; ?>"
-                    data-emergency="<?php echo $post["emergency"] ? "true" : "false"; ?>"
+                while (
+                    $post =
+                    $postsResult->fetch_assoc()
+                ) {
+
+
+                    /* Only Approved posts */
+
+                    if (
+                        $post["status"] != "Approved"
+                    ) {
+                        continue;
+                    }
+
+
+                    $approvedPostFound = true;
+
+
+
+                    /* =========================
+                       POST OWNER
+                    ========================= */
+
+                    $ownerName =
+                        "Anonymous User";
+
+
+                    if (
+                        (int)$post["anonymous"] == 0
+                    ) {
+
+                        $ownerResult =
+                            $database->getUserById(
+                                $connection,
+                                $post["user_id"]
+                            );
+
+
+                        if (
+                            $ownerResult &&
+                            $ownerResult->num_rows > 0
+                        ) {
+
+                            $owner =
+                                $ownerResult->fetch_assoc();
+
+                            $ownerName =
+                                $owner["fullname"];
+
+                        }
+
+                    }
+
+
+
+                    /* =========================
+                       COVERAGE CHECK
+                    ========================= */
+
+                    $covered = false;
+
+
+                    $coverageStatement =
+                        $connection->prepare(
+                            "SELECT id
+                             FROM journalist_coverage
+                             WHERE post_id = ?
+                             AND journalist_id = ?"
+                        );
+
+
+                    $coverageStatement->bind_param(
+                        "ii",
+                        $post["id"],
+                        $journalistId
+                    );
+
+
+                    $coverageStatement->execute();
+
+                    $coverageResult =
+                        $coverageStatement->get_result();
+
+
+                    if (
+                        $coverageResult->num_rows > 0
+                    ) {
+                        $covered = true;
+                    }
+
+
+                    $coverageStatement->close();
+
+
+
+                    /* =========================
+                       EMERGENCY
+                    ========================= */
+
+                    $emergency = false;
+
+
+                    if (
+                        $post["post_type"]
+                        == "Emergency Post"
+                    ) {
+                        $emergency = true;
+                    }
+
+
+
+                    /* =========================
+                       VIDEO
+                    ========================= */
+
+                    $hasVideo = false;
+
+
+                    if (
+                        isset($post["video_path"]) &&
+                        trim($post["video_path"]) != ""
+                    ) {
+                        $hasVideo = true;
+                    }
+
+            ?>
+
+
+                <article
+                    class="post-card<?php
+                        if ($emergency) {
+                            echo " emergency-card";
+                        }
+                    ?>"
+
+                    data-covered="<?php
+                        echo $covered
+                            ? "true"
+                            : "false";
+                    ?>"
+
+                    data-emergency="<?php
+                        echo $emergency
+                            ? "true"
+                            : "false";
+                    ?>"
                 >
 
+
+                    <!-- POST HEADER -->
 
                     <div class="post-header">
 
 
                         <div>
 
+
                             <h3>
-                                <?php echo htmlspecialchars($post["title"]); ?>
+
+                                <?php
+
+                                echo htmlspecialchars(
+                                    $post["title"]
+                                );
+
+                                ?>
+
                             </h3>
+
 
 
                             <p class="owner">
@@ -370,67 +618,122 @@ foreach ($posts as $post) {
                                 Posted by
 
                                 <strong>
-                                    <?php echo htmlspecialchars($post["owner"]); ?>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $ownerName
+                                    );
+
+                                    ?>
+
                                 </strong>
 
                                 •
 
-                                <?php echo htmlspecialchars($post["date"]); ?>
+                                <?php
+
+                                echo htmlspecialchars(
+                                    date(
+                                        "d M Y",
+                                        strtotime(
+                                            $post["created_at"]
+                                        )
+                                    )
+                                );
+
+                                ?>
 
                             </p>
+
 
                         </div>
 
 
+
+                        <!-- TAGS -->
 
                         <div class="tag-area">
 
 
-                            <?php if ($post["covered"] == true) { ?>
+                            <?php if ($covered) { ?>
+
 
                                 <span class="covered-tag">
+
                                     Covered by You
+
                                 </span>
+
 
                             <?php } ?>
 
 
-                            <?php if ($post["emergency"] == true) { ?>
+
+                            <?php if ($emergency) { ?>
+
 
                                 <span class="emergency-tag">
+
                                     Emergency
+
                                 </span>
+
 
                             <?php } ?>
 
 
                         </div>
+
 
                     </div>
 
 
 
+                    <!-- POST CONTENT -->
+
                     <p class="post-content">
-                        <?php echo htmlspecialchars($post["content"]); ?>
+
+                        <?php
+
+                        echo nl2br(
+                            htmlspecialchars(
+                                $post["description"]
+                            )
+                        );
+
+                        ?>
+
                     </p>
 
 
+
+                    <!-- POST ACTIONS -->
 
                     <div class="post-actions">
 
 
                         <div>
 
-                            <?php if ($post["video"] == true) { ?>
 
-                                <button
-                                    type="button"
+                            <?php if ($hasVideo) { ?>
+
+
+                                <a
+                                    href="<?php
+                                        echo htmlspecialchars(
+                                            $post["video_path"]
+                                        );
+                                    ?>"
                                     class="video-btn"
+                                    target="_blank"
                                 >
                                     ▶ Play Video
-                                </button>
+                                </a>
+
 
                             <?php } ?>
+
 
                         </div>
 
@@ -438,16 +741,31 @@ foreach ($posts as $post) {
 
                         <div>
 
-                            <form action="journalist.php" method="post">
 
-                                <input
-                                    type="hidden"
-                                    name="postId"
-                                    value="<?php echo $post["id"]; ?>"
+                            <?php if ($covered) { ?>
+
+
+                                <form
+                                    action="journalist.php"
+                                    method="post"
                                 >
 
 
-                                <?php if ($post["covered"] == true) { ?>
+                                    <input
+                                        type="hidden"
+                                        name="post_id"
+                                        value="<?php
+                                            echo (int)$post["id"];
+                                        ?>"
+                                    >
+
+
+                                    <input
+                                        type="hidden"
+                                        name="action"
+                                        value="uncover"
+                                    >
+
 
                                     <button
                                         type="submit"
@@ -456,7 +774,35 @@ foreach ($posts as $post) {
                                         Uncover
                                     </button>
 
-                                <?php } else { ?>
+
+                                </form>
+
+
+
+                            <?php } else { ?>
+
+
+                                <form
+                                    action="journalist.php"
+                                    method="post"
+                                >
+
+
+                                    <input
+                                        type="hidden"
+                                        name="post_id"
+                                        value="<?php
+                                            echo (int)$post["id"];
+                                        ?>"
+                                    >
+
+
+                                    <input
+                                        type="hidden"
+                                        name="action"
+                                        value="cover"
+                                    >
+
 
                                     <button
                                         type="submit"
@@ -465,10 +811,12 @@ foreach ($posts as $post) {
                                         Cover This Post
                                     </button>
 
-                                <?php } ?>
+
+                                </form>
 
 
-                            </form>
+                            <?php } ?>
+
 
                         </div>
 
@@ -476,32 +824,58 @@ foreach ($posts as $post) {
                     </div>
 
 
-                </div>
+                </article>
 
 
-            <?php } ?>
+            <?php
+
+                }
+
+            }
+
+            ?>
 
 
         </div>
 
 
 
-        <?php if (count($filteredPosts) == 0) { ?>
+        <!-- NO RESULT -->
 
-            <div
-                id="noResult"
-                class="no-result"
-                style="display: block;"
-            >
-                No posts found.
-            </div>
+        <div
+            id="noResult"
+            class="no-result"
+        >
 
-        <?php } ?>
+            <?php
+
+            if (!$approvedPostFound) {
+                echo "No approved posts found.";
+            }
+            else {
+                echo "No posts found.";
+            }
+
+            ?>
+
+        </div>
 
 
-    </div>
+    </main>
+
 
 </div>
+
+
+
+<script src="JS/journalist.js"></script>
+
+
+<?php
+
+$connection->close();
+
+?>
 
 
 </body>
