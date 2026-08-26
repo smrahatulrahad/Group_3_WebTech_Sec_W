@@ -5,9 +5,7 @@ session_start();
 include "../Model/DatabaseConnection.php";
 
 
-/* =========================
-   ACCESS CONTROL
-   ========================= */
+
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -33,9 +31,9 @@ $userName = $_SESSION["userName"];
 $errorMessage = "";
 
 
-/* =========================
-   FILE UPLOAD FUNCTION
-   ========================= */
+
+   //FILE UPLOAD FUNCTION
+  
 
 function saveUploadedFile(
     $file,
