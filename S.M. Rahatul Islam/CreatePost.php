@@ -675,19 +675,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </option>
 
                             <option>
-                                Dhaka
+                                Zila 1
                             </option>
 
                             <option>
-                                Gazipur
+                                 Zila 2
                             </option>
 
                             <option>
-                                Cumilla
+                                 Zila 3
                             </option>
 
                             <option>
-                                Sylhet
+                                 Zila 4
                             </option>
 
                             <option>
@@ -713,19 +713,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </option>
 
                             <option>
-                                Savar
+                                Upazila 1
                             </option>
 
                             <option>
-                                Mirpur
+                                Upazila 2
                             </option>
 
                             <option>
-                                Kotwali
+                                Upazila 3
                             </option>
 
                             <option>
-                                Sadar
+                               Upazila 4
                             </option>
 
                             <option>
