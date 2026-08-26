@@ -5,9 +5,7 @@ session_start();
 include "../Model/DatabaseConnection.php";
 
 
-/* =========================
-   ACCESS CONTROL
-   ========================= */
+
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -24,9 +22,6 @@ $database = new DatabaseConnection();
 $connection = $database->openConnection();
 
 
-/* =========================
-   GET CURRENT USER
-   ========================= */
 
 $userResult = $database->getUserById(
     $connection,
@@ -65,7 +60,7 @@ $userName = $user["fullname"];
 $userRole = $user["role"];
 
 
-/* Only valid project roles can use this page */
+// Only valid project roles 
 
 if (
     $userRole != "Citizen" &&
@@ -82,16 +77,16 @@ if (
 }
 
 
-/* Keep normal login session information updated */
+// login session information updated 
 
 $_SESSION["userName"] = $userName;
 $_SESSION["userRole"] = $userRole;
 $_SESSION["userEmail"] = $user["email"];
 
 
-/* =========================
-   CORRECT NEWSFEED
-   ========================= */
+
+   //CORRECT NEWSFEED
+   
 
 $newsfeedPage = "UserNewsfeed.php";
 
@@ -123,19 +118,6 @@ elseif (
 }
 
 
-/* =========================
-   GET CASE STATUS
-   ========================= */
-
-/*
-    Only approved posts are shown.
-
-    Police status comes from:
-    police_cases
-
-    Journalist coverage comes from:
-    journalist_coverage
-*/
 
 $sql =
     "SELECT

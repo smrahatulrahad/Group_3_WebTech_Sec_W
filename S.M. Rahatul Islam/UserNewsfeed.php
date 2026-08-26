@@ -5,9 +5,7 @@ session_start();
 include "../Model/DatabaseConnection.php";
 
 
-/* =========================
-   ACCESS CONTROL
-   ========================= */
+
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -30,18 +28,14 @@ if (
 $userName = $_SESSION["userName"];
 
 
-/* =========================
-   SEARCH
-   ========================= */
+
 
 $search = trim(
     $_GET["search"] ?? ""
 );
 
 
-/* =========================
-   GET POSTS FROM DATABASE
-   ========================= */
+
 
 $database = new DatabaseConnection();
 
@@ -80,10 +74,7 @@ while ($row = $result->fetch_assoc()) {
             $row["area"];
 
 
-        /*
-            Do not expose an anonymous
-            author's name through search.
-        */
+      
 
         if ($row["anonymous"] == 0) {
 

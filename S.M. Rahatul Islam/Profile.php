@@ -5,9 +5,7 @@ session_start();
 include "../Model/DatabaseConnection.php";
 
 
-/* =========================
-   ACCESS CONTROL
-   ========================= */
+
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -27,10 +25,8 @@ if (!isset($_SESSION["userId"])) {
     exit();
 }
 
-
-/* =========================
-   GET USER FROM DATABASE
-   ========================= */
+// DATABASE
+   
 
 $database = new DatabaseConnection();
 
@@ -58,7 +54,7 @@ if ($result->num_rows == 0) {
 $user = $result->fetch_assoc();
 
 
-/* Disabled user should not continue */
+// Disabled user should not continue 
 
 if ($user["status"] == "Disabled") {
 
@@ -72,9 +68,9 @@ if ($user["status"] == "Disabled") {
 }
 
 
-/* =========================
-   USER INFORMATION
-   ========================= */
+
+   //USER INFORMATION
+   
 
 $userName = $user["fullname"];
 $userRole = $user["role"];
@@ -82,7 +78,7 @@ $userEmail = $user["email"];
 $userPhone = $user["phone"] ?? "";
 
 
-/* Citizen information */
+// Citizen information 
 
 $address = $user["address"] ?? "";
 $district = $user["district"] ?? "";
@@ -90,20 +86,20 @@ $upazila = $user["upazila"] ?? "";
 $nid = $user["nid"] ?? "";
 
 
-/* Journalist information */
+// Journalist information 
 
 $journalistId = $user["journalist_id"] ?? "";
 $channelName = $user["channel_name"] ?? "";
 
 
-/* Police information */
+// Police information 
 
 $badgeNumber = $user["badge_number"] ?? "";
 $rank = $user["police_rank"] ?? "";
 $stationName = $user["station_name"] ?? "";
 
 
-/* Keep basic session information updated */
+// Keep basic session information updated 
 
 $_SESSION["userName"] = $userName;
 $_SESSION["userRole"] = $userRole;
@@ -113,14 +109,7 @@ $_SESSION["userEmail"] = $userEmail;
 $connection->close();
 
 
-/* =========================
-   ROLE ACCESS
-   ========================= */
 
-/*
-    This profile page is used by:
-    Citizen, Police and Journalist.
-*/
 
 if (
     $userRole != "Citizen" &&

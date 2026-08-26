@@ -52,7 +52,7 @@ function saveUploadedFile(
     }
 
 
-    /* Check upload error */
+    
 
     if ($file["error"] != UPLOAD_ERR_OK) {
 
@@ -63,7 +63,7 @@ function saveUploadedFile(
     }
 
 
-    /* Get file extension */
+    
 
     $extension = strtolower(
         pathinfo(
@@ -73,7 +73,7 @@ function saveUploadedFile(
     );
 
 
-    /* Check allowed extension */
+    
 
     if (
         !in_array(
@@ -98,15 +98,7 @@ function saveUploadedFile(
         $extension;
 
 
-    /*
-        Path stored in database:
-
-        uploads/file_name.jpg
-
-        Actual folder is:
-
-        Group_3_WebTech_Sec_W/uploads/
-    */
+    
 
     $databasePath =
         "uploads/" . $fileName;
@@ -115,7 +107,7 @@ function saveUploadedFile(
         "../uploads/" . $fileName;
 
 
-    /* Save uploaded file */
+    // Save uploaded file 
 
     if (
         !move_uploaded_file(
@@ -135,9 +127,9 @@ function saveUploadedFile(
 }
 
 
-/* =========================
-   CREATE POST
-   ========================= */
+
+   //CREATE POST
+   
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -172,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         trim($_POST["area"] ?? "");
 
 
-    /* Anonymous checkbox */
+    // Anonymous checkbox 
 
     $anonymous = 0;
 
@@ -181,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    /* Check required fields */
+    // Check required fields 
 
     if (
         $postType == "" ||
@@ -195,7 +187,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    /* Check valid post type */
+    // Check valid post type 
 
     elseif (
         $postType != "Normal Post" &&
@@ -208,7 +200,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    /* Emergency posts cannot be anonymous */
+    // Emergency posts cannot be anonymous 
 
     elseif (
         $postType == "Emergency Post" &&
@@ -221,7 +213,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    /* Check uploads folder */
+    // Check uploads folder 
 
     elseif (!is_dir("../uploads")) {
 
@@ -234,9 +226,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     else {
 
 
-        /* =========================
-           SAVE PHOTO
-           ========================= */
+       
 
         $photoExtensions = [
             "jpg",
@@ -255,20 +245,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         );
 
 
-        /*
-            false means an upload
-            error occurred.
-
-            null means no file was
-            uploaded, which is allowed.
-        */
+       
 
         if ($photoPath !== false) {
 
 
-            /* =========================
-               SAVE VIDEO
-               ========================= */
+           
 
             $videoExtensions = [
                 "mp4",
@@ -290,9 +272,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($videoPath !== false) {
 
 
-                /* =========================
-                   DATABASE
-                   ========================= */
+                
+                  // DATABASE
+                  
 
                 $database =
                     new DatabaseConnection();
@@ -323,7 +305,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $connection->close();
 
 
-                /* Post created successfully */
+                
 
                 if ($created) {
 

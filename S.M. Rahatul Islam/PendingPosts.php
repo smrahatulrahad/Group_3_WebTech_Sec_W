@@ -5,9 +5,6 @@ session_start();
 include "../Model/DatabaseConnection.php";
 
 
-/* =========================
-   ACCESS CONTROL
-   ========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -34,18 +31,16 @@ $errorMessage = "";
 $successMessage = "";
 
 
-/* =========================
-   DATABASE CONNECTION
-   ========================= */
+
+  // DATABASE CONNECTION
+ 
 
 $database = new DatabaseConnection();
 
 $connection = $database->openConnection();
 
 
-/* =========================
-   SAVE EDITED POST
-   ========================= */
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -90,20 +85,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     else {
 
 
-        /*
-            Citizen can update only:
+        
+           // Citizen can update only:
 
-            - own post
-            - Pending post
-        */
+        
 
         if ($category == "Emergency Post") {
 
 
-            /*
-                Emergency posts cannot
-                remain anonymous.
-            */
+            
+               // Emergency posts cannot remain anonymous.
+            
 
             $sql =
                 "UPDATE posts
@@ -194,9 +186,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 
-/* =========================
-   SUCCESS MESSAGE
-   ========================= */
+
+  // SUCCESS MESSAGE
+   
 
 if (isset($_GET["saved"])) {
 
@@ -206,9 +198,6 @@ if (isset($_GET["saved"])) {
 }
 
 
-/* =========================
-   GET USER POSTS
-   ========================= */
 
 $result =
     $database->getPostsByUser(
@@ -232,9 +221,7 @@ while ($row = $result->fetch_assoc()) {
 }
 
 
-/* =========================
-   SELECT POST FOR EDITING
-   ========================= */
+
 
 $selectedPostId =
     (int) ($_GET["post"] ?? 0);

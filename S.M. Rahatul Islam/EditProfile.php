@@ -5,9 +5,7 @@ session_start();
 include "../Model/DatabaseConnection.php";
 
 
-/* =========================
-   ACCESS CONTROL
-   ========================= */
+
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -32,18 +30,16 @@ $userId = (int) $_SESSION["userId"];
 $errorMessage = "";
 
 
-/* =========================
-   DATABASE CONNECTION
-   ========================= */
+
 
 $database = new DatabaseConnection();
 
 $connection = $database->openConnection();
 
 
-/* =========================
-   GET CURRENT USER
-   ========================= */
+
+   //GET CURRENT USER
+  
 
 $result = $database->getUserById(
     $connection,
@@ -81,7 +77,7 @@ if ($user["status"] == "Disabled") {
 $userRole = $user["role"];
 
 
-/* This profile page is only for these roles */
+// This profile page is only for these roles 
 
 if (
     $userRole != "Citizen" &&
@@ -96,9 +92,7 @@ if (
 }
 
 
-/* =========================
-   SAVE EDITED INFORMATION
-   ========================= */
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
@@ -131,9 +125,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     else {
 
 
-        /* =========================
-           CITIZEN
-           ========================= */
+       
+          // CITIZEN
+           
 
         if ($userRole == "Citizen") {
 
@@ -199,9 +193,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
 
-        /* =========================
-           JOURNALIST
-           ========================= */
+        
+           //JOURNALIST
+           
 
         elseif ($userRole == "Journalist") {
 
@@ -253,9 +247,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
 
-        /* =========================
-           POLICE
-           ========================= */
+        
+          // POLICE
+           
 
         else {
 
@@ -314,7 +308,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
 
-        /* Execute update */
+       
 
         if (
             $errorMessage == "" &&
@@ -325,10 +319,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 $statement->close();
 
-                /*
-                    Keep only normal
-                    login session data updated.
-                */
+               
 
                 $_SESSION["userName"] =
                     $userName;
@@ -356,9 +347,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 
-/* =========================
-   GET LATEST USER INFORMATION
-   ========================= */
+
+  // GET LATEST USER INFORMATION
+  
 
 $result = $database->getUserById(
     $connection,
@@ -381,7 +372,7 @@ $upazila = $user["upazila"] ?? "";
 $nid = $user["nid"] ?? "";
 
 
-/* Journalist information */
+// Journalist information 
 
 $journalistId =
     $user["journalist_id"] ?? "";
@@ -390,7 +381,7 @@ $channelName =
     $user["channel_name"] ?? "";
 
 
-/* Police information */
+// Police information 
 
 $badgeNumber =
     $user["badge_number"] ?? "";
@@ -402,7 +393,7 @@ $stationName =
     $user["station_name"] ?? "";
 
 
-/* Keep normal login session updated */
+// Keep normal login session updated 
 
 $_SESSION["userName"] = $userName;
 $_SESSION["userRole"] = $userRole;
@@ -412,9 +403,9 @@ $_SESSION["userEmail"] = $userEmail;
 $connection->close();
 
 
-/* =========================
-   CORRECT NEWSFEED
-   ========================= */
+
+ //  CORRECT NEWSFEED
+  
 
 $newsfeedPage = "UserNewsfeed.php";
 
