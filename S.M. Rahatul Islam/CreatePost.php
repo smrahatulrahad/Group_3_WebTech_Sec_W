@@ -1,6 +1,13 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
+
+
+/* =========================
+   ACCESS CONTROL
+   ========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -11,13 +18,341 @@ if (
 }
 
 
-if ($_SESSION["userRole"] != "Citizen") {
+if (
+    !isset($_SESSION["userRole"]) ||
+    $_SESSION["userRole"] != "Citizen"
+) {
     header("Location: ../utsa_Mazumdar/login.php");
     exit();
 }
 
 
+$userId = $_SESSION["userId"];
 $userName = $_SESSION["userName"];
+
+$errorMessage = "";
+
+
+/* =========================
+   FILE UPLOAD FUNCTION
+   ========================= */
+
+function saveUploadedFile(
+    $file,
+    $allowedExtensions,
+    $prefix,
+    &$errorMessage
+) {
+
+    /* File is optional */
+
+    if (
+        !isset($file) ||
+        $file["error"] == UPLOAD_ERR_NO_FILE
+    ) {
+        return null;
+    }
+
+
+    /* Check upload error */
+
+    if ($file["error"] != UPLOAD_ERR_OK) {
+
+        $errorMessage =
+            "There was a problem uploading the file.";
+
+        return false;
+    }
+
+
+    /* Get file extension */
+
+    $extension = strtolower(
+        pathinfo(
+            $file["name"],
+            PATHINFO_EXTENSION
+        )
+    );
+
+
+    /* Check allowed extension */
+
+    if (
+        !in_array(
+            $extension,
+            $allowedExtensions
+        )
+    ) {
+
+        $errorMessage =
+            "Invalid file type.";
+
+        return false;
+    }
+
+
+    /* Create a unique file name */
+
+    $fileName =
+        $prefix . "_" .
+        time() . "_" .
+        uniqid() . "." .
+        $extension;
+
+
+    /*
+        Path stored in database:
+
+        uploads/file_name.jpg
+
+        Actual folder is:
+
+        Group_3_WebTech_Sec_W/uploads/
+    */
+
+    $databasePath =
+        "uploads/" . $fileName;
+
+    $serverPath =
+        "../uploads/" . $fileName;
+
+
+    /* Save uploaded file */
+
+    if (
+        !move_uploaded_file(
+            $file["tmp_name"],
+            $serverPath
+        )
+    ) {
+
+        $errorMessage =
+            "Could not save the uploaded file.";
+
+        return false;
+    }
+
+
+    return $databasePath;
+}
+
+
+/* =========================
+   CREATE POST
+   ========================= */
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+
+    /* Get form information */
+
+    $postType =
+        trim($_POST["postType"] ?? "");
+
+    $title =
+        trim($_POST["title"] ?? "");
+
+    $description =
+        trim($_POST["description"] ?? "");
+
+    $contactInfo =
+        trim($_POST["contactInfo"] ?? "");
+
+    $division =
+        trim($_POST["division"] ?? "");
+
+    $zila =
+        trim($_POST["zila"] ?? "");
+
+    $upazila =
+        trim($_POST["upazila"] ?? "");
+
+    $union =
+        trim($_POST["union"] ?? "");
+
+    $area =
+        trim($_POST["area"] ?? "");
+
+
+    /* Anonymous checkbox */
+
+    $anonymous = 0;
+
+    if (isset($_POST["anonymous"])) {
+        $anonymous = 1;
+    }
+
+
+    /* Check required fields */
+
+    if (
+        $postType == "" ||
+        $title == "" ||
+        $description == ""
+    ) {
+
+        $errorMessage =
+            "Please complete all required fields.";
+
+    }
+
+
+    /* Check valid post type */
+
+    elseif (
+        $postType != "Normal Post" &&
+        $postType != "Emergency Post"
+    ) {
+
+        $errorMessage =
+            "Please select a valid post type.";
+
+    }
+
+
+    /* Emergency posts cannot be anonymous */
+
+    elseif (
+        $postType == "Emergency Post" &&
+        $anonymous == 1
+    ) {
+
+        $errorMessage =
+            "Emergency posts cannot be anonymous.";
+
+    }
+
+
+    /* Check uploads folder */
+
+    elseif (!is_dir("../uploads")) {
+
+        $errorMessage =
+            "Uploads folder was not found.";
+
+    }
+
+
+    else {
+
+
+        /* =========================
+           SAVE PHOTO
+           ========================= */
+
+        $photoExtensions = [
+            "jpg",
+            "jpeg",
+            "png",
+            "bmp",
+            "gif"
+        ];
+
+
+        $photoPath = saveUploadedFile(
+            $_FILES["photo"] ?? null,
+            $photoExtensions,
+            "photo",
+            $errorMessage
+        );
+
+
+        /*
+            false means an upload
+            error occurred.
+
+            null means no file was
+            uploaded, which is allowed.
+        */
+
+        if ($photoPath !== false) {
+
+
+            /* =========================
+               SAVE VIDEO
+               ========================= */
+
+            $videoExtensions = [
+                "mp4",
+                "avi",
+                "mov",
+                "wmv",
+                "mkv"
+            ];
+
+
+            $videoPath = saveUploadedFile(
+                $_FILES["video"] ?? null,
+                $videoExtensions,
+                "video",
+                $errorMessage
+            );
+
+
+            if ($videoPath !== false) {
+
+
+                /* =========================
+                   DATABASE
+                   ========================= */
+
+                $database =
+                    new DatabaseConnection();
+
+                $connection =
+                    $database->openConnection();
+
+
+                $created =
+                    $database->createPost(
+                        $connection,
+                        $userId,
+                        $postType,
+                        $title,
+                        $description,
+                        $contactInfo,
+                        $division,
+                        $zila,
+                        $upazila,
+                        $union,
+                        $area,
+                        $anonymous,
+                        $photoPath,
+                        $videoPath
+                    );
+
+
+                $connection->close();
+
+
+                /* Post created successfully */
+
+                if ($created) {
+
+                    header(
+                        "Location: PendingPosts.php"
+                    );
+
+                    exit();
+
+                }
+
+
+                else {
+
+                    $errorMessage =
+                        "Post could not be created. Please try again.";
+
+                }
+
+            }
+
+        }
+
+    }
+
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -27,11 +362,17 @@ $userName = $_SESSION["userName"];
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>CivicLens - Create Post</title>
 
-    <link rel="stylesheet" href="CSS/CreatePost.css">
+    <link
+        rel="stylesheet"
+        href="CSS/CreatePost.css"
+    >
 
 </head>
 
@@ -49,7 +390,10 @@ $userName = $_SESSION["userName"];
 
     </div>
 
-    <a href="UserNewsfeed.php" class="backTop">
+    <a
+        href="UserNewsfeed.php"
+        class="backTop"
+    >
         Back to Newsfeed
     </a>
 
@@ -66,16 +410,34 @@ $userName = $_SESSION["userName"];
         <div class="userInfo">
 
             <div class="avatar">
-                <?php echo strtoupper(substr($userName, 0, 1)); ?>
+
+                <?php
+                echo strtoupper(
+                    substr(
+                        $userName,
+                        0,
+                        1
+                    )
+                );
+                ?>
+
             </div>
 
 
             <div>
 
-                <small>Signed in as</small>
+                <small>
+                    Signed in as
+                </small>
 
                 <strong>
-                    <?php echo htmlspecialchars($userName); ?>
+
+                    <?php
+                    echo htmlspecialchars(
+                        $userName
+                    );
+                    ?>
+
                 </strong>
 
             </div>
@@ -108,7 +470,10 @@ $userName = $_SESSION["userName"];
         </div>
 
 
-        <a href="../utsa_Mazumdar/logout.php" class="logout">
+        <a
+            href="../utsa_Mazumdar/logout.php"
+            class="logout"
+        >
             Logout
         </a>
 
@@ -127,22 +492,46 @@ $userName = $_SESSION["userName"];
                 Share a civic issue or important community information.
             </p>
 
+
+            <?php if ($errorMessage != "") { ?>
+
+                <p>
+                    <?php
+                    echo htmlspecialchars(
+                        $errorMessage
+                    );
+                    ?>
+                </p>
+
+            <?php } ?>
+
         </div>
 
 
 
         <div class="formCard">
 
-            <form action="CreatePost.php" method="post" enctype="multipart/form-data">
+            <form
+                action="CreatePost.php"
+                method="post"
+                enctype="multipart/form-data"
+            >
 
 
                 <div class="formGroup">
 
-                    <label>Post Type</label>
+                    <label>
+                        Post Type
+                    </label>
 
-                    <select name="postType" required>
+                    <select
+                        name="postType"
+                        required
+                    >
 
-                        <option value="">Select Post Type</option>
+                        <option value="">
+                            Select Post Type
+                        </option>
 
                         <option value="Normal Post">
                             Normal Post
@@ -164,7 +553,9 @@ $userName = $_SESSION["userName"];
 
                 <div class="formGroup">
 
-                    <label>Title</label>
+                    <label>
+                        Title
+                    </label>
 
                     <input
                         type="text"
@@ -179,7 +570,9 @@ $userName = $_SESSION["userName"];
 
                 <div class="formGroup">
 
-                    <label>Description</label>
+                    <label>
+                        Description
+                    </label>
 
                     <textarea
                         name="description"
@@ -193,7 +586,9 @@ $userName = $_SESSION["userName"];
 
                 <div class="formGroup">
 
-                    <label>Contact Info</label>
+                    <label>
+                        Contact Info
+                    </label>
 
                     <input
                         type="text"
@@ -207,7 +602,9 @@ $userName = $_SESSION["userName"];
 
                 <div class="locationTitle">
 
-                    <h3>Location Information</h3>
+                    <h3>
+                        Location Information
+                    </h3>
 
                     <p>
                         Add location details so the issue can be identified easily.
@@ -221,19 +618,43 @@ $userName = $_SESSION["userName"];
 
                     <div class="formGroup">
 
-                        <label>Division</label>
+                        <label>
+                            Division
+                        </label>
 
                         <select name="division">
 
-                            <option value="">Select Division</option>
+                            <option value="">
+                                Select Division
+                            </option>
+
                             <option>Dhaka</option>
-                            <option>Chattogram</option>
+
+                            <option>
+                                Chattogram
+                            </option>
+
                             <option>Khulna</option>
-                            <option>Rajshahi</option>
-                            <option>Rangpur</option>
-                            <option>Mymensingh</option>
-                            <option>Sylhet</option>
-                            <option>Barishal</option>
+
+                            <option>
+                                Rajshahi
+                            </option>
+
+                            <option>
+                                Rangpur
+                            </option>
+
+                            <option>
+                                Mymensingh
+                            </option>
+
+                            <option>
+                                Sylhet
+                            </option>
+
+                            <option>
+                                Barishal
+                            </option>
 
                         </select>
 
@@ -243,16 +664,35 @@ $userName = $_SESSION["userName"];
 
                     <div class="formGroup">
 
-                        <label>Zila</label>
+                        <label>
+                            Zila
+                        </label>
 
                         <select name="zila">
 
-                            <option value="">Select Zila</option>
-                            <option>Dhaka</option>
-                            <option>Gazipur</option>
-                            <option>Cumilla</option>
-                            <option>Sylhet</option>
-                            <option>Other</option>
+                            <option value="">
+                                Select Zila
+                            </option>
+
+                            <option>
+                                Dhaka
+                            </option>
+
+                            <option>
+                                Gazipur
+                            </option>
+
+                            <option>
+                                Cumilla
+                            </option>
+
+                            <option>
+                                Sylhet
+                            </option>
+
+                            <option>
+                                Other
+                            </option>
 
                         </select>
 
@@ -262,16 +702,35 @@ $userName = $_SESSION["userName"];
 
                     <div class="formGroup">
 
-                        <label>Upazila</label>
+                        <label>
+                            Upazila
+                        </label>
 
                         <select name="upazila">
 
-                            <option value="">Select Upazila</option>
-                            <option>Savar</option>
-                            <option>Mirpur</option>
-                            <option>Kotwali</option>
-                            <option>Sadar</option>
-                            <option>Other</option>
+                            <option value="">
+                                Select Upazila
+                            </option>
+
+                            <option>
+                                Savar
+                            </option>
+
+                            <option>
+                                Mirpur
+                            </option>
+
+                            <option>
+                                Kotwali
+                            </option>
+
+                            <option>
+                                Sadar
+                            </option>
+
+                            <option>
+                                Other
+                            </option>
 
                         </select>
 
@@ -281,32 +740,65 @@ $userName = $_SESSION["userName"];
 
                     <div class="formGroup">
 
-                        <label>Union / Municipality</label>
+                        <label>
+                            Union / Municipality
+                        </label>
 
                         <select name="union">
 
-                            <option value="">Select Union / Municipality</option>
-                            <option>Union-1</option>
-                            <option>Union-2</option>
-                            <option>Municipality-1</option>
-                            <option>Other</option>
+                            <option value="">
+                                Select Union / Municipality
+                            </option>
+
+                            <option>
+                                Union-1
+                            </option>
+
+                            <option>
+                                Union-2
+                            </option>
+
+                            <option>
+                                Municipality-1
+                            </option>
+
+                            <option>
+                                Other
+                            </option>
 
                         </select>
 
                     </div>
+
 
 
                     <div class="formGroup fullWidth">
 
-                        <label>Area</label>
+                        <label>
+                            Area
+                        </label>
 
                         <select name="area">
 
-                            <option value="">Select Area</option>
-                            <option>Area-1</option>
-                            <option>Area-2</option>
-                            <option>Area-3</option>
-                            <option>Other</option>
+                            <option value="">
+                                Select Area
+                            </option>
+
+                            <option>
+                                Area-1
+                            </option>
+
+                            <option>
+                                Area-2
+                            </option>
+
+                            <option>
+                                Area-3
+                            </option>
+
+                            <option>
+                                Other
+                            </option>
 
                         </select>
 
@@ -314,6 +806,7 @@ $userName = $_SESSION["userName"];
 
 
                 </div>
+
 
 
                 <div class="anonymousBox">
@@ -336,9 +829,12 @@ $userName = $_SESSION["userName"];
                 </p>
 
 
+
                 <div class="mediaTitle">
 
-                    <h3>Add Media</h3>
+                    <h3>
+                        Add Media
+                    </h3>
 
                     <p>
                         Photo and video are optional.
@@ -353,7 +849,9 @@ $userName = $_SESSION["userName"];
 
                     <div class="formGroup">
 
-                        <label>Upload Photo</label>
+                        <label>
+                            Upload Photo
+                        </label>
 
                         <input
                             type="file"
@@ -367,7 +865,9 @@ $userName = $_SESSION["userName"];
 
                     <div class="formGroup">
 
-                        <label>Upload Video</label>
+                        <label>
+                            Upload Video
+                        </label>
 
                         <input
                             type="file"
@@ -384,11 +884,17 @@ $userName = $_SESSION["userName"];
 
                 <div class="formButtons">
 
-                    <button type="submit" class="createButton">
+                    <button
+                        type="submit"
+                        class="createButton"
+                    >
                         Create Post
                     </button>
 
-                    <a href="UserNewsfeed.php" class="cancelButton">
+                    <a
+                        href="UserNewsfeed.php"
+                        class="cancelButton"
+                    >
                         Cancel
                     </a>
 
