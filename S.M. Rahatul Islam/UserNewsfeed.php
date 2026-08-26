@@ -1,6 +1,13 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
+
+
+/* =========================
+   ACCESS CONTROL
+   ========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -11,190 +18,598 @@ if (
 }
 
 
-if ($_SESSION["userRole"] != "Citizen") {
+if (
+    !isset($_SESSION["userRole"]) ||
+    $_SESSION["userRole"] != "Citizen"
+) {
     header("Location: ../utsa_Mazumdar/login.php");
     exit();
 }
 
 
 $userName = $_SESSION["userName"];
+
+
+/* =========================
+   SEARCH
+   ========================= */
+
+$search = trim(
+    $_GET["search"] ?? ""
+);
+
+
+/* =========================
+   GET POSTS FROM DATABASE
+   ========================= */
+
+$database = new DatabaseConnection();
+
+$connection = $database->openConnection();
+
+
+$result = $database->getAllPosts(
+    $connection
+);
+
+
+$posts = [];
+
+
+while ($row = $result->fetch_assoc()) {
+
+
+    /* Newsfeed only shows approved posts */
+
+    if ($row["status"] != "Approved") {
+        continue;
+    }
+
+
+    /* Search */
+
+    if ($search != "") {
+
+        $searchText =
+            $row["title"] . " " .
+            $row["description"] . " " .
+            $row["division"] . " " .
+            $row["zila"] . " " .
+            $row["upazila"] . " " .
+            $row["union_name"] . " " .
+            $row["area"];
+
+
+        /*
+            Do not expose an anonymous
+            author's name through search.
+        */
+
+        if ($row["anonymous"] == 0) {
+
+            $searchText .=
+                " " . $row["fullname"];
+
+        }
+
+
+        if (
+            stripos(
+                $searchText,
+                $search
+            ) === false
+        ) {
+            continue;
+        }
+
+    }
+
+
+    $posts[] = $row;
+
+}
+
+
+$connection->close();
+
+
+$postCount = count($posts);
+
 ?>
+
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CivicLens - User Newsfeed</title>
-    <link rel="stylesheet" href="CSS/UserNewsfeed.css">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        CivicLens - User Newsfeed
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="CSS/UserNewsfeed.css"
+    >
+
 </head>
+
+
 <body>
+
 
 <header class="header">
 
+
     <div class="brand">
+
         <h1>CivicLens</h1>
-        <p>Community Newsfeed</p>
+
+        <p>
+            Community Newsfeed
+        </p>
+
     </div>
 
-    <form class="searchBox">
-        <input type="text" placeholder="Search posts...">
-        <button type="button">Search</button>
+
+
+    <form
+        class="searchBox"
+        action="UserNewsfeed.php"
+        method="get"
+    >
+
+        <input
+            type="text"
+            name="search"
+            placeholder="Search posts..."
+            value="<?php echo htmlspecialchars($search); ?>"
+        >
+
+        <button type="submit">
+            Search
+        </button>
+
     </form>
 
+
+
     <div class="headerButtons">
-        <a href="CreatePost.php" class="createPost">+ Post</a>
-        <a href="UserNewsfeed.php" class="refreshButton">Refresh</a>
+
+        <a
+            href="CreatePost.php"
+            class="createPost"
+        >
+            + Post
+        </a>
+
+        <a
+            href="UserNewsfeed.php"
+            class="refreshButton"
+        >
+            Refresh
+        </a>
+
     </div>
+
 
 </header>
 
+
+
 <div class="pageContainer">
+
 
     <aside class="sidebar">
 
+
         <div class="userInfo">
 
+
             <div class="avatar">
-                <?php echo strtoupper(substr($userName, 0, 1)); ?>
+
+                <?php
+
+                echo strtoupper(
+                    substr(
+                        $userName,
+                        0,
+                        1
+                    )
+                );
+
+                ?>
+
             </div>
+
 
             <div>
-                <small>Signed in as</small>
-                <strong><?php echo htmlspecialchars($userName); ?></strong>
+
+                <small>
+                    Signed in as
+                </small>
+
+                <strong>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $userName
+                    );
+
+                    ?>
+
+                </strong>
+
             </div>
 
+
         </div>
+
+
 
         <div class="menu">
 
-            <a href="UserNewsfeed.php" class="active">Newsfeed</a>
 
-            <a href="Profile.php">Profile</a>
+            <a
+                href="UserNewsfeed.php"
+                class="active"
+            >
+                Newsfeed
+            </a>
 
-            <a href="PendingPosts.php">Pending Posts</a>
 
-            <a href="ShowCases.php">Show Cases</a>
+            <a href="Profile.php">
+                Profile
+            </a>
 
-            <a href="Donation.php">Donation</a>
+
+            <a href="PendingPosts.php">
+                Pending Posts
+            </a>
+
+
+            <a href="ShowCases.php">
+                Show Cases
+            </a>
+
+
+            <a href="Donation.php">
+                Donation
+            </a>
+
 
         </div>
 
-        <a href="../utsa_Mazumdar/logout.php" class="logout">Logout</a>
+
+
+        <a
+            href="../utsa_Mazumdar/logout.php"
+            class="logout"
+        >
+            Logout
+        </a>
+
 
     </aside>
 
+
+
     <main class="mainContent">
+
 
         <div class="feedHeader">
 
+
             <div>
-                <h2>Community Newsfeed</h2>
-                <p>Approved civic reports and community updates.</p>
-            </div>
 
-            <span class="postCount">3 Posts</span>
-
-        </div>
-
-
-        <div class="postCard">
-
-            <div class="postHeading">
-
-                <div>
-                    <h3>Road Damage Near Main Intersection</h3>
-
-                    <p class="postInformation">
-                        By Rahim Ahmed <span>•</span> 20 Aug 2026, 09:40 PM
-                    </p>
-                </div>
-
-            </div>
-
-            <span class="activity">Case is being reviewed</span>
-
-            <div class="postContent">
+                <h2>
+                    Community Newsfeed
+                </h2>
 
                 <p>
-                    A large pothole has formed near the main intersection.
-                    It is causing traffic problems and may become dangerous at night.
-                </p>
-
-                <div class="mediaBox">
-                    <span>Image attached</span>
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="postCard emergencyPost">
-
-            <div class="postHeading">
-
-                <div>
-                    <h3>Urgent Help Needed After Local Fire</h3>
-
-                    <p class="postInformation">
-                        By Samia Karim <span>•</span> 20 Aug 2026, 08:15 PM
-                    </p>
-                </div>
-
-                <span class="emergencyBadge">EMERGENCY</span>
-
-            </div>
-
-            <span class="activity">Emergency post reported</span>
-
-            <div class="postContent">
-
-                <p>
-                    A small fire was reported in a residential area.
-                    Local residents have already contacted emergency services.
-                    Please avoid blocking the road.
+                    Approved civic reports and community updates.
                 </p>
 
             </div>
 
+
+            <span class="postCount">
+
+                <?php
+
+                echo $postCount;
+
+                echo $postCount == 1
+                    ? " Post"
+                    : " Posts";
+
+                ?>
+
+            </span>
+
+
         </div>
 
 
-        <div class="postCard">
 
-            <div class="postHeading">
+        <?php if ($search != "") { ?>
 
-                <div>
-                    <h3>Street Light Not Working</h3>
+            <div class="searchMessage">
 
-                    <p class="postInformation">
-                        By Tanvir Hasan <span>•</span> 19 Aug 2026, 10:05 PM
-                    </p>
-                </div>
+                Search results for:
+
+                <strong>
+
+                    <?php
+                    echo htmlspecialchars($search);
+                    ?>
+
+                </strong>
+
+                <a href="UserNewsfeed.php">
+                    Clear Search
+                </a>
 
             </div>
 
-            <span class="activity">Post approved</span>
+        <?php } ?>
 
-            <div class="postContent">
+
+
+        <?php if ($postCount == 0) { ?>
+
+
+            <div class="noPosts">
+
+                <h3>
+                    No Posts Found
+                </h3>
 
                 <p>
-                    Several street lights beside the community park have not been working
-                    for the last few days. The area becomes very dark after sunset.
-                </p>
 
-                <div class="mediaBox">
-                    <span>Video attached</span>
-                    <button type="button">Play Video</button>
-                </div>
+                    <?php if ($search != "") { ?>
+
+                        No approved posts match your search.
+
+                    <?php } else { ?>
+
+                        There are currently no approved posts.
+
+                    <?php } ?>
+
+                </p>
 
             </div>
 
-        </div>
+
+        <?php } ?>
+
+
+
+        <?php foreach ($posts as $post) { ?>
+
+
+            <?php
+
+            $isEmergency =
+                $post["post_type"] == "Emergency Post";
+
+
+            if ($post["anonymous"] == 1) {
+
+                $authorName = "Anonymous";
+
+            }
+
+            else {
+
+                $authorName =
+                    $post["fullname"];
+
+            }
+
+
+            $createdDate = date(
+                "d M Y, h:i A",
+                strtotime(
+                    $post["created_at"]
+                )
+            );
+
+
+            $hasPhoto =
+                !empty($post["photo_path"]);
+
+
+            $hasVideo =
+                !empty($post["video_path"]);
+
+            ?>
+
+
+            <div
+                class="postCard<?php echo $isEmergency ? " emergencyPost" : ""; ?>"
+            >
+
+
+                <div class="postHeading">
+
+
+                    <div>
+
+
+                        <h3>
+
+                            <?php
+
+                            echo htmlspecialchars(
+                                $post["title"]
+                            );
+
+                            ?>
+
+                        </h3>
+
+
+                        <p class="postInformation">
+
+                            By
+
+                            <?php
+
+                            echo htmlspecialchars(
+                                $authorName
+                            );
+
+                            ?>
+
+                            <span>•</span>
+
+                            <?php
+
+                            echo htmlspecialchars(
+                                $createdDate
+                            );
+
+                            ?>
+
+                        </p>
+
+
+                    </div>
+
+
+
+                    <?php if ($isEmergency) { ?>
+
+                        <span class="emergencyBadge">
+                            EMERGENCY
+                        </span>
+
+                    <?php } ?>
+
+
+                </div>
+
+
+
+                <span class="activity">
+
+                    <?php
+
+                    if ($isEmergency) {
+
+                        echo "Emergency post approved";
+
+                    }
+
+                    else {
+
+                        echo "Post approved";
+
+                    }
+
+                    ?>
+
+                </span>
+
+
+
+                <div class="postContent">
+
+
+                    <p>
+
+                        <?php
+
+                        echo nl2br(
+                            htmlspecialchars(
+                                $post["description"]
+                            )
+                        );
+
+                        ?>
+
+                    </p>
+
+
+
+                    <?php if ($hasPhoto || $hasVideo) { ?>
+
+
+                        <div class="mediaBox">
+
+
+                            <?php if ($hasPhoto) { ?>
+
+                                <span>
+                                    Image attached
+                                </span>
+
+                                <a
+                                    href="../<?php echo htmlspecialchars($post["photo_path"]); ?>"
+                                    target="_blank"
+                                >
+
+                                    <button type="button">
+                                        View Image
+                                    </button>
+
+                                </a>
+
+                            <?php } ?>
+
+
+
+                            <?php if ($hasVideo) { ?>
+
+                                <span>
+                                    Video attached
+                                </span>
+
+                                <a
+                                    href="../<?php echo htmlspecialchars($post["video_path"]); ?>"
+                                    target="_blank"
+                                >
+
+                                    <button type="button">
+                                        Play Video
+                                    </button>
+
+                                </a>
+
+                            <?php } ?>
+
+
+                        </div>
+
+
+                    <?php } ?>
+
+
+                </div>
+
+
+            </div>
+
+
+        <?php } ?>
+
 
     </main>
 
+
 </div>
 
+
 </body>
+
 </html>

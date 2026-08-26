@@ -1,6 +1,13 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
+
+
+/* =========================
+   ACCESS CONTROL
+   ========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -11,76 +18,422 @@ if (
 }
 
 
-$userName = $_SESSION["userName"];
-$userRole = $_SESSION["userRole"];
-$userEmail = $_SESSION["userEmail"];
-$userPhone = $_SESSION["userPhone"] ?? "";
+if (!isset($_SESSION["userId"])) {
 
-/* Citizen information */
-$address = $_SESSION["address"] ?? "Bashundhara Residential Area";
-$district = $_SESSION["district"] ?? "Dhaka";
-$upazila = $_SESSION["upazila"] ?? "Badda";
-$nid = $_SESSION["nid"] ?? "1234567890";
+    session_unset();
+    session_destroy();
 
-/* Journalist information */
-$journalistId = $_SESSION["journalistId"] ?? "JRN-1025";
-$channelName = $_SESSION["channelName"] ?? "Daily News Network";
-
-/* Police information */
-$badgeNumber = $_SESSION["badgeNumber"] ?? "BDP-2048";
-$rank = $_SESSION["rank"] ?? "Sub-Inspector";
-$stationName = $_SESSION["stationName"] ?? "Badda Police Station";
-
-
-/* Save edited information */
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $_SESSION["userName"] = trim($_POST["userName"]);
-    $_SESSION["userPhone"] = trim($_POST["userPhone"]);
-
-
-    if ($userRole == "Citizen") {
-
-        $_SESSION["address"] = trim($_POST["address"]);
-        $_SESSION["district"] = trim($_POST["district"]);
-        $_SESSION["upazila"] = trim($_POST["upazila"]);
-        $_SESSION["nid"] = trim($_POST["nid"]);
-
-    }
-
-
-    if ($userRole == "Journalist") {
-
-        $_SESSION["journalistId"] = trim($_POST["journalistId"]);
-        $_SESSION["channelName"] = trim($_POST["channelName"]);
-
-    }
-
-
-    if ($userRole == "Police") {
-
-        $_SESSION["badgeNumber"] = trim($_POST["badgeNumber"]);
-        $_SESSION["rank"] = trim($_POST["rank"]);
-        $_SESSION["stationName"] = trim($_POST["stationName"]);
-
-    }
-
-
-    header("Location: Profile.php");
+    header("Location: ../utsa_Mazumdar/login.php");
     exit();
 }
 
 
-/* Choose the correct newsfeed according to role */
+$userId = (int) $_SESSION["userId"];
+$errorMessage = "";
+
+
+/* =========================
+   DATABASE CONNECTION
+   ========================= */
+
+$database = new DatabaseConnection();
+
+$connection = $database->openConnection();
+
+
+/* =========================
+   GET CURRENT USER
+   ========================= */
+
+$result = $database->getUserById(
+    $connection,
+    $userId
+);
+
+
+if ($result->num_rows == 0) {
+
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$user = $result->fetch_assoc();
+
+
+if ($user["status"] == "Disabled") {
+
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+}
+
+
+$userRole = $user["role"];
+
+
+/* This profile page is only for these roles */
+
+if (
+    $userRole != "Citizen" &&
+    $userRole != "Police" &&
+    $userRole != "Journalist"
+) {
+
+    $connection->close();
+
+    header("Location: ../Adnan Raad/AdminNewsfeed.php");
+    exit();
+}
+
+
+/* =========================
+   SAVE EDITED INFORMATION
+   ========================= */
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $userName = trim(
+        $_POST["userName"] ?? ""
+    );
+
+    $userPhone = trim(
+        $_POST["userPhone"] ?? ""
+    );
+
+
+    if (
+        $userName == "" ||
+        $userPhone == ""
+    ) {
+
+        $errorMessage =
+            "Please complete all required fields.";
+
+    }
+
+    elseif (!ctype_digit($userPhone)) {
+
+        $errorMessage =
+            "Phone number must contain numbers only.";
+
+    }
+
+    else {
+
+
+        /* =========================
+           CITIZEN
+           ========================= */
+
+        if ($userRole == "Citizen") {
+
+            $address = trim(
+                $_POST["address"] ?? ""
+            );
+
+            $district = trim(
+                $_POST["district"] ?? ""
+            );
+
+            $upazila = trim(
+                $_POST["upazila"] ?? ""
+            );
+
+            $nid = trim(
+                $_POST["nid"] ?? ""
+            );
+
+
+            if (
+                $address == "" ||
+                $district == "" ||
+                $upazila == "" ||
+                $nid == ""
+            ) {
+
+                $errorMessage =
+                    "Please complete all Citizen information.";
+
+            }
+
+            else {
+
+                $sql =
+                    "UPDATE users
+                     SET fullname = ?,
+                         phone = ?,
+                         address = ?,
+                         district = ?,
+                         upazila = ?,
+                         nid = ?
+                     WHERE id = ?";
+
+
+                $statement =
+                    $connection->prepare($sql);
+
+
+                $statement->bind_param(
+                    "ssssssi",
+                    $userName,
+                    $userPhone,
+                    $address,
+                    $district,
+                    $upazila,
+                    $nid,
+                    $userId
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           JOURNALIST
+           ========================= */
+
+        elseif ($userRole == "Journalist") {
+
+            $journalistId = trim(
+                $_POST["journalistId"] ?? ""
+            );
+
+            $channelName = trim(
+                $_POST["channelName"] ?? ""
+            );
+
+
+            if (
+                $journalistId == "" ||
+                $channelName == ""
+            ) {
+
+                $errorMessage =
+                    "Please complete all Journalist information.";
+
+            }
+
+            else {
+
+                $sql =
+                    "UPDATE users
+                     SET fullname = ?,
+                         phone = ?,
+                         journalist_id = ?,
+                         channel_name = ?
+                     WHERE id = ?";
+
+
+                $statement =
+                    $connection->prepare($sql);
+
+
+                $statement->bind_param(
+                    "ssssi",
+                    $userName,
+                    $userPhone,
+                    $journalistId,
+                    $channelName,
+                    $userId
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           POLICE
+           ========================= */
+
+        else {
+
+            $badgeNumber = trim(
+                $_POST["badgeNumber"] ?? ""
+            );
+
+            $rank = trim(
+                $_POST["rank"] ?? ""
+            );
+
+            $stationName = trim(
+                $_POST["stationName"] ?? ""
+            );
+
+
+            if (
+                $badgeNumber == "" ||
+                $rank == "" ||
+                $stationName == ""
+            ) {
+
+                $errorMessage =
+                    "Please complete all Police information.";
+
+            }
+
+            else {
+
+                $sql =
+                    "UPDATE users
+                     SET fullname = ?,
+                         phone = ?,
+                         badge_number = ?,
+                         police_rank = ?,
+                         station_name = ?
+                     WHERE id = ?";
+
+
+                $statement =
+                    $connection->prepare($sql);
+
+
+                $statement->bind_param(
+                    "sssssi",
+                    $userName,
+                    $userPhone,
+                    $badgeNumber,
+                    $rank,
+                    $stationName,
+                    $userId
+                );
+
+            }
+
+        }
+
+
+        /* Execute update */
+
+        if (
+            $errorMessage == "" &&
+            isset($statement)
+        ) {
+
+            if ($statement->execute()) {
+
+                $statement->close();
+
+                /*
+                    Keep only normal
+                    login session data updated.
+                */
+
+                $_SESSION["userName"] =
+                    $userName;
+
+                $connection->close();
+
+                header("Location: Profile.php");
+                exit();
+
+            }
+
+            else {
+
+                $errorMessage =
+                    "Profile could not be updated. Please try again.";
+
+                $statement->close();
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================
+   GET LATEST USER INFORMATION
+   ========================= */
+
+$result = $database->getUserById(
+    $connection,
+    $userId
+);
+
+$user = $result->fetch_assoc();
+
+
+$userName = $user["fullname"];
+$userEmail = $user["email"];
+$userPhone = $user["phone"];
+
+
+/* Citizen information */
+
+$address = $user["address"] ?? "";
+$district = $user["district"] ?? "";
+$upazila = $user["upazila"] ?? "";
+$nid = $user["nid"] ?? "";
+
+
+/* Journalist information */
+
+$journalistId =
+    $user["journalist_id"] ?? "";
+
+$channelName =
+    $user["channel_name"] ?? "";
+
+
+/* Police information */
+
+$badgeNumber =
+    $user["badge_number"] ?? "";
+
+$rank =
+    $user["police_rank"] ?? "";
+
+$stationName =
+    $user["station_name"] ?? "";
+
+
+/* Keep normal login session updated */
+
+$_SESSION["userName"] = $userName;
+$_SESSION["userRole"] = $userRole;
+$_SESSION["userEmail"] = $userEmail;
+
+
+$connection->close();
+
+
+/* =========================
+   CORRECT NEWSFEED
+   ========================= */
+
 $newsfeedPage = "UserNewsfeed.php";
 
+
 if ($userRole == "Journalist") {
-    $newsfeedPage = "../Adnan Raad/journalist.php";
+
+    $newsfeedPage =
+        "../Adnan Raad/journalist.php";
+
 }
 
-if ($userRole == "Police") {
-    $newsfeedPage = "../Adnan Raad/police.php";
+
+elseif ($userRole == "Police") {
+
+    $newsfeedPage =
+        "../Adnan Raad/police.php";
+
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -88,10 +441,17 @@ if ($userRole == "Police") {
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>CivicLens - Edit Profile</title>
-    <link rel="stylesheet" href="CSS/EditProfile.css">
+
+    <link
+        rel="stylesheet"
+        href="CSS/EditProfile.css"
+    >
 </head>
 
 <body>
@@ -103,7 +463,12 @@ if ($userRole == "Police") {
         <p>Edit Profile</p>
     </div>
 
-    <a href="Profile.php" class="backButton">Back to Profile</a>
+    <a
+        href="Profile.php"
+        class="backButton"
+    >
+        Back to Profile
+    </a>
 
 </header>
 
@@ -115,13 +480,37 @@ if ($userRole == "Police") {
         <div class="userInfo">
 
             <div class="avatar">
-                <?php echo strtoupper(substr($userName, 0, 1)); ?>
+
+                <?php
+                echo strtoupper(
+                    substr(
+                        $userName,
+                        0,
+                        1
+                    )
+                );
+                ?>
+
             </div>
 
             <div>
-                <small>Signed in as</small>
-                <strong><?php echo htmlspecialchars($userName); ?></strong>
-                <span><?php echo htmlspecialchars($userRole); ?></span>
+
+                <small>
+                    Signed in as
+                </small>
+
+                <strong>
+                    <?php
+                    echo htmlspecialchars($userName);
+                    ?>
+                </strong>
+
+                <span>
+                    <?php
+                    echo htmlspecialchars($userRole);
+                    ?>
+                </span>
+
             </div>
 
         </div>
@@ -129,31 +518,49 @@ if ($userRole == "Police") {
 
         <div class="menu">
 
-            <a href="<?php echo $newsfeedPage; ?>">Newsfeed</a>
+            <a href="<?php echo $newsfeedPage; ?>">
+                Newsfeed
+            </a>
 
-            <a href="Profile.php" class="active">Profile</a>
+            <a
+                href="Profile.php"
+                class="active"
+            >
+                Profile
+            </a>
 
 
             <?php if ($userRole == "Citizen") { ?>
 
-                <a href="PendingPosts.php">Pending Posts</a>
+                <a href="PendingPosts.php">
+                    Pending Posts
+                </a>
 
             <?php } ?>
 
 
-            <a href="ShowCases.php">Show Cases</a>
+            <a href="ShowCases.php">
+                Show Cases
+            </a>
 
 
             <?php if ($userRole == "Citizen") { ?>
 
-                <a href="Donation.php">Donation</a>
+                <a href="Donation.php">
+                    Donation
+                </a>
 
             <?php } ?>
 
         </div>
 
 
-        <a href="../utsa_Mazumdar/logout.php" class="logout">Logout</a>
+        <a
+            href="../utsa_Mazumdar/logout.php"
+            class="logout"
+        >
+            Logout
+        </a>
 
     </aside>
 
@@ -163,19 +570,46 @@ if ($userRole == "Police") {
 
         <div class="pageTitle">
 
-            <h2>Edit Profile</h2>
+            <h2>
+                Edit Profile
+            </h2>
 
-            <p>Update your personal and account information.</p>
+            <p>
+                Update your personal and account information.
+            </p>
+
+
+            <?php if ($errorMessage != "") { ?>
+
+                <p>
+
+                    <?php
+                    echo htmlspecialchars(
+                        $errorMessage
+                    );
+                    ?>
+
+                </p>
+
+            <?php } ?>
 
         </div>
 
 
 
-        <form action="EditProfile.php" method="post" class="profileCard">
+        <form
+            action="EditProfile.php"
+            method="post"
+            class="profileCard"
+        >
 
 
             <div class="sectionTitle">
-                <h3>Basic Information</h3>
+
+                <h3>
+                    Basic Information
+                </h3>
+
             </div>
 
 
@@ -183,7 +617,9 @@ if ($userRole == "Police") {
 
                 <div class="formItem">
 
-                    <label>Full Name</label>
+                    <label>
+                        Full Name
+                    </label>
 
                     <input
                         type="text"
@@ -197,7 +633,9 @@ if ($userRole == "Police") {
 
                 <div class="formItem">
 
-                    <label>Email Address</label>
+                    <label>
+                        Email Address
+                    </label>
 
                     <input
                         type="email"
@@ -210,7 +648,9 @@ if ($userRole == "Police") {
 
                 <div class="formItem">
 
-                    <label>Role</label>
+                    <label>
+                        Role
+                    </label>
 
                     <input
                         type="text"
@@ -223,7 +663,9 @@ if ($userRole == "Police") {
 
                 <div class="formItem">
 
-                    <label>Phone Number</label>
+                    <label>
+                        Phone Number
+                    </label>
 
                     <input
                         type="text"
@@ -242,7 +684,11 @@ if ($userRole == "Police") {
 
 
                 <div class="sectionTitle secondSection">
-                    <h3>Citizen Information</h3>
+
+                    <h3>
+                        Citizen Information
+                    </h3>
+
                 </div>
 
 
@@ -251,7 +697,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem wideItem">
 
-                        <label>Address</label>
+                        <label>
+                            Address
+                        </label>
 
                         <input
                             type="text"
@@ -265,7 +713,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>District</label>
+                        <label>
+                            District
+                        </label>
 
                         <input
                             type="text"
@@ -279,7 +729,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>Upazila</label>
+                        <label>
+                            Upazila
+                        </label>
 
                         <input
                             type="text"
@@ -293,7 +745,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>NID Number</label>
+                        <label>
+                            NID Number
+                        </label>
 
                         <input
                             type="text"
@@ -316,7 +770,11 @@ if ($userRole == "Police") {
 
 
                 <div class="sectionTitle secondSection">
-                    <h3>Journalist Information</h3>
+
+                    <h3>
+                        Journalist Information
+                    </h3>
+
                 </div>
 
 
@@ -325,7 +783,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>Journalist ID</label>
+                        <label>
+                            Journalist ID
+                        </label>
 
                         <input
                             type="text"
@@ -339,7 +799,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>Channel / Organization</label>
+                        <label>
+                            Channel / Organization
+                        </label>
 
                         <input
                             type="text"
@@ -362,7 +824,11 @@ if ($userRole == "Police") {
 
 
                 <div class="sectionTitle secondSection">
-                    <h3>Police Information</h3>
+
+                    <h3>
+                        Police Information
+                    </h3>
+
                 </div>
 
 
@@ -371,7 +837,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>Badge Number</label>
+                        <label>
+                            Badge Number
+                        </label>
 
                         <input
                             type="text"
@@ -385,7 +853,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>Rank</label>
+                        <label>
+                            Rank
+                        </label>
 
                         <input
                             type="text"
@@ -399,7 +869,9 @@ if ($userRole == "Police") {
 
                     <div class="formItem">
 
-                        <label>Station Name</label>
+                        <label>
+                            Station Name
+                        </label>
 
                         <input
                             type="text"
@@ -420,11 +892,17 @@ if ($userRole == "Police") {
 
             <div class="formButtons">
 
-                <button type="submit" class="saveButton">
+                <button
+                    type="submit"
+                    class="saveButton"
+                >
                     Save Changes
                 </button>
 
-                <a href="Profile.php" class="cancelButton">
+                <a
+                    href="Profile.php"
+                    class="cancelButton"
+                >
                     Cancel
                 </a>
 

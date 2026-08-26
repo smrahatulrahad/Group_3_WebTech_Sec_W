@@ -149,7 +149,7 @@ $userName = $_SESSION["userName"];
             <div class="linkList">
 
 
-                <a href="https://www.brac.net/donate" target="_blank">
+                <a href="https://www.brac.net/get-involved/donate/" target="_blank">
                     <strong>BRAC</strong>
                     <span>Visit donation page</span>
                 </a>

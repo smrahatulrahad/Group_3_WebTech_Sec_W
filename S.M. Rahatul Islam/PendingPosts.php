@@ -2,8 +2,12 @@
 
 session_start();
 
+include "../Model/DatabaseConnection.php";
 
-/* User must be logged in */
+
+/* =========================
+   ACCESS CONTROL
+   ========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
@@ -14,69 +18,267 @@ if (
 }
 
 
-/* Only Citizen can access Pending Posts */
-
-if ($_SESSION["userRole"] != "Citizen") {
+if (
+    !isset($_SESSION["userRole"]) ||
+    $_SESSION["userRole"] != "Citizen"
+) {
     header("Location: ../utsa_Mazumdar/login.php");
     exit();
 }
 
 
+$userId = $_SESSION["userId"];
 $userName = $_SESSION["userName"];
 
-$selectedPost = $_GET["post"] ?? "";
+$errorMessage = "";
+$successMessage = "";
 
 
-/* Post approval/rejection status */
+/* =========================
+   DATABASE CONNECTION
+   ========================= */
 
-$postStatus = $_SESSION["postStatus"] ?? [];
+$database = new DatabaseConnection();
+
+$connection = $database->openConnection();
 
 
-/*
-    If a post has already been approved or rejected,
-    do not allow it to be edited as a pending post.
-*/
+/* =========================
+   SAVE EDITED POST
+   ========================= */
 
-if (
-    $selectedPost != "" &&
-    isset($postStatus[$selectedPost])
-) {
-    header("Location: PendingPosts.php");
-    exit();
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $postId =
+        (int) ($_POST["postId"] ?? 0);
+
+    $title =
+        trim($_POST["title"] ?? "");
+
+    $category =
+        trim($_POST["category"] ?? "");
+
+    $body =
+        trim($_POST["body"] ?? "");
+
+
+    /* Validation */
+
+    if (
+        $postId <= 0 ||
+        $title == "" ||
+        $body == ""
+    ) {
+
+        $errorMessage =
+            "Please complete all required fields.";
+
+    }
+
+
+    elseif (
+        $category != "Normal Post" &&
+        $category != "Emergency Post"
+    ) {
+
+        $errorMessage =
+            "Please select a valid post type.";
+
+    }
+
+
+    else {
+
+
+        /*
+            Citizen can update only:
+
+            - own post
+            - Pending post
+        */
+
+        if ($category == "Emergency Post") {
+
+
+            /*
+                Emergency posts cannot
+                remain anonymous.
+            */
+
+            $sql =
+                "UPDATE posts
+                 SET title = ?,
+                     post_type = ?,
+                     description = ?,
+                     anonymous = 0
+                 WHERE id = ?
+                 AND user_id = ?
+                 AND status = 'Pending'";
+
+        }
+
+
+        else {
+
+
+            $sql =
+                "UPDATE posts
+                 SET title = ?,
+                     post_type = ?,
+                     description = ?
+                 WHERE id = ?
+                 AND user_id = ?
+                 AND status = 'Pending'";
+
+        }
+
+
+        $statement =
+            $connection->prepare($sql);
+
+
+        $statement->bind_param(
+            "sssii",
+            $title,
+            $category,
+            $body,
+            $postId,
+            $userId
+        );
+
+
+        if ($statement->execute()) {
+
+
+            if ($statement->affected_rows > 0) {
+
+
+                $statement->close();
+
+                $connection->close();
+
+
+                header(
+                    "Location: PendingPosts.php?saved=1"
+                );
+
+                exit();
+
+            }
+
+
+            else {
+
+
+                $errorMessage =
+                    "Post was not changed or is no longer pending.";
+
+            }
+
+        }
+
+
+        else {
+
+
+            $errorMessage =
+                "Post could not be updated. Please try again.";
+
+        }
+
+
+        $statement->close();
+
+    }
+
 }
 
 
-$postId = "";
-$title = "";
-$category = "";
-$body = "";
-$createdAt = "";
+/* =========================
+   SUCCESS MESSAGE
+   ========================= */
 
+if (isset($_GET["saved"])) {
 
-if ($selectedPost == "1") {
-
-    $postId = "101";
-    $title = "Broken Drain Cover Near School";
-    $category = "Normal Post";
-    $body = "A drain cover near the school gate is broken and may cause accidents. Please repair it as soon as possible.";
-    $createdAt = "20 Aug 2026, 06:30 PM";
+    $successMessage =
+        "Post updated successfully.";
 
 }
 
 
-if ($selectedPost == "2") {
+/* =========================
+   GET USER POSTS
+   ========================= */
 
-    $postId = "102";
-    $title = "Waterlogging After Heavy Rain";
-    $category = "Emergency Post";
-    $body = "Heavy rain has caused severe waterlogging in the residential road. People are having difficulty using the road.";
-    $createdAt = "20 Aug 2026, 04:10 PM";
+$result =
+    $database->getPostsByUser(
+        $connection,
+        $userId
+    );
+
+
+$pendingPosts = [];
+
+
+while ($row = $result->fetch_assoc()) {
+
+
+    if ($row["status"] == "Pending") {
+
+        $pendingPosts[] = $row;
+
+    }
 
 }
+
+
+/* =========================
+   SELECT POST FOR EDITING
+   ========================= */
+
+$selectedPostId =
+    (int) ($_GET["post"] ?? 0);
+
+
+$selectedPost = null;
+
+
+if ($selectedPostId > 0) {
+
+
+    foreach ($pendingPosts as $post) {
+
+
+        if (
+            (int) $post["id"] ==
+            $selectedPostId
+        ) {
+
+            $selectedPost = $post;
+
+            break;
+
+        }
+
+    }
+
+
+    if ($selectedPost === null) {
+
+        $errorMessage =
+            "The selected post was not found or is no longer pending.";
+
+    }
+
+}
+
+
+$connection->close();
 
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -88,7 +290,9 @@ if ($selectedPost == "2") {
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>CivicLens - Pending Posts</title>
+    <title>
+        CivicLens - Pending Posts
+    </title>
 
     <link
         rel="stylesheet"
@@ -107,7 +311,9 @@ if ($selectedPost == "2") {
 
         <h1>CivicLens</h1>
 
-        <p>Pending Posts</p>
+        <p>
+            Pending Posts
+        </p>
 
     </div>
 
@@ -135,9 +341,15 @@ if ($selectedPost == "2") {
             <div class="avatar">
 
                 <?php
+
                 echo strtoupper(
-                    substr($userName, 0, 1)
+                    substr(
+                        $userName,
+                        0,
+                        1
+                    )
                 );
+
                 ?>
 
             </div>
@@ -145,10 +357,20 @@ if ($selectedPost == "2") {
 
             <div>
 
-                <small>Signed in as</small>
+                <small>
+                    Signed in as
+                </small>
 
                 <strong>
-                    <?php echo htmlspecialchars($userName); ?>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $userName
+                    );
+
+                    ?>
+
                 </strong>
 
             </div>
@@ -160,13 +382,16 @@ if ($selectedPost == "2") {
 
         <div class="menu">
 
+
             <a href="UserNewsfeed.php">
                 Newsfeed
             </a>
 
+
             <a href="Profile.php">
                 Profile
             </a>
+
 
             <a
                 href="PendingPosts.php"
@@ -175,13 +400,16 @@ if ($selectedPost == "2") {
                 Pending Posts
             </a>
 
+
             <a href="ShowCases.php">
                 Show Cases
             </a>
 
+
             <a href="Donation.php">
                 Donation
             </a>
+
 
         </div>
 
@@ -204,11 +432,52 @@ if ($selectedPost == "2") {
 
         <div class="pageTitle">
 
-            <h2>My Pending Posts</h2>
+
+            <h2>
+                My Pending Posts
+            </h2>
+
 
             <p>
                 View and edit posts that are waiting for approval.
             </p>
+
+
+
+            <?php if ($successMessage != "") { ?>
+
+                <p>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $successMessage
+                    );
+
+                    ?>
+
+                </p>
+
+            <?php } ?>
+
+
+
+            <?php if ($errorMessage != "") { ?>
+
+                <p>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $errorMessage
+                    );
+
+                    ?>
+
+                </p>
+
+            <?php } ?>
+
 
         </div>
 
@@ -220,132 +489,156 @@ if ($selectedPost == "2") {
             <section class="pendingList">
 
 
-                <h3>Pending Posts</h3>
+                <h3>
+                    Pending Posts
+                </h3>
 
 
 
-                <?php if (!isset($postStatus["1"])) { ?>
-
-
-                    <div class="postItem">
-
-
-                        <div class="postTop">
-
-
-                            <div>
-
-                                <h4>
-                                    Broken Drain Cover Near School
-                                </h4>
-
-                                <p>
-                                    20 Aug 2026, 06:30 PM
-                                </p>
-
-                            </div>
-
-
-                            <span class="normalBadge">
-                                Normal
-                            </span>
-
-
-                        </div>
-
-
-                        <p class="shortText">
-
-                            A drain cover near the school gate
-                            is broken and may cause accidents.
-
-                        </p>
-
-
-                        <a
-                            href="PendingPosts.php?post=1"
-                            class="editButton"
-                        >
-                            Edit Post
-                        </a>
-
-
-                    </div>
-
-
-                <?php } ?>
-
-
-
-                <?php if (!isset($postStatus["2"])) { ?>
-
-
-                    <div class="postItem emergencyItem">
-
-
-                        <div class="postTop">
-
-
-                            <div>
-
-                                <h4>
-                                    Waterlogging After Heavy Rain
-                                </h4>
-
-                                <p>
-                                    20 Aug 2026, 04:10 PM
-                                </p>
-
-                            </div>
-
-
-                            <span class="emergencyBadge">
-                                Emergency
-                            </span>
-
-
-                        </div>
-
-
-                        <p class="shortText">
-
-                            Heavy rain has caused severe
-                            waterlogging in the residential road.
-
-                        </p>
-
-
-                        <a
-                            href="PendingPosts.php?post=2"
-                            class="editButton"
-                        >
-                            Edit Post
-                        </a>
-
-
-                    </div>
-
-
-                <?php } ?>
-
-
-
-                <?php
-                if (
-                    isset($postStatus["1"]) &&
-                    isset($postStatus["2"])
-                ) {
-                ?>
+                <?php if (count($pendingPosts) == 0) { ?>
 
 
                     <div class="emptyEditor">
 
-                        <h4>No Pending Posts</h4>
+                        <h4>
+                            No Pending Posts
+                        </h4>
 
                         <p>
                             You currently have no posts waiting
                             for approval.
                         </p>
+
+                    </div>
+
+
+                <?php } ?>
+
+
+
+                <?php foreach ($pendingPosts as $post) { ?>
+
+
+                    <?php
+
+
+                    $isEmergency =
+                        $post["post_type"] ==
+                        "Emergency Post";
+
+
+                    $createdAt = date(
+                        "d M Y, h:i A",
+                        strtotime(
+                            $post["created_at"]
+                        )
+                    );
+
+
+                    $shortText =
+                        $post["description"];
+
+
+                    if (strlen($shortText) > 120) {
+
+                        $shortText =
+                            substr(
+                                $shortText,
+                                0,
+                                120
+                            ) . "...";
+
+                    }
+
+
+                    ?>
+
+
+                    <div
+                        class="postItem<?php echo $isEmergency ? " emergencyItem" : ""; ?>"
+                    >
+
+
+                        <div class="postTop">
+
+
+                            <div>
+
+
+                                <h4>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $post["title"]
+                                    );
+
+                                    ?>
+
+                                </h4>
+
+
+                                <p>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $createdAt
+                                    );
+
+                                    ?>
+
+                                </p>
+
+
+                            </div>
+
+
+
+                            <?php if ($isEmergency) { ?>
+
+
+                                <span class="emergencyBadge">
+                                    Emergency
+                                </span>
+
+
+                            <?php } else { ?>
+
+
+                                <span class="normalBadge">
+                                    Normal
+                                </span>
+
+
+                            <?php } ?>
+
+
+                        </div>
+
+
+
+                        <p class="shortText">
+
+                            <?php
+
+                            echo htmlspecialchars(
+                                $shortText
+                            );
+
+                            ?>
+
+                        </p>
+
+
+
+                        <a
+                            href="PendingPosts.php?post=<?php echo (int) $post["id"]; ?>"
+                            class="editButton"
+                        >
+                            Edit Post
+                        </a>
+
 
                     </div>
 
@@ -360,11 +653,13 @@ if ($selectedPost == "2") {
             <section class="editSection">
 
 
-                <h3>Edit Post</h3>
+                <h3>
+                    Edit Post
+                </h3>
 
 
 
-                <?php if ($selectedPost == "") { ?>
+                <?php if ($selectedPost === null) { ?>
 
 
                     <div class="emptyEditor">
@@ -376,10 +671,8 @@ if ($selectedPost == "2") {
 
 
                         <p>
-
                             Click the Edit Post button from
                             the left side to view and edit a post.
-
                         </p>
 
 
@@ -390,7 +683,21 @@ if ($selectedPost == "2") {
 
 
 
-                <?php if ($selectedPost != "") { ?>
+                <?php if ($selectedPost !== null) { ?>
+
+
+                    <?php
+
+
+                    $selectedCreatedAt = date(
+                        "d M Y, h:i A",
+                        strtotime(
+                            $selectedPost["created_at"]
+                        )
+                    );
+
+
+                    ?>
 
 
                     <form
@@ -407,9 +714,7 @@ if ($selectedPost == "2") {
                         <input
                             type="text"
                             name="postId"
-                            value="<?php
-                            echo htmlspecialchars($postId);
-                            ?>"
+                            value="<?php echo (int) $selectedPost["id"]; ?>"
                             readonly
                         >
 
@@ -423,9 +728,8 @@ if ($selectedPost == "2") {
                         <input
                             type="text"
                             name="title"
-                            value="<?php
-                            echo htmlspecialchars($title);
-                            ?>"
+                            value="<?php echo htmlspecialchars($selectedPost["title"]); ?>"
+                            required
                         >
 
 
@@ -435,25 +739,47 @@ if ($selectedPost == "2") {
                         </label>
 
 
-                        <select name="category">
+                        <select
+                            name="category"
+                            required
+                        >
 
 
                             <option
+                                value="Normal Post"
+
                                 <?php
-                                if ($category == "Normal Post") {
+
+                                if (
+                                    $selectedPost["post_type"] ==
+                                    "Normal Post"
+                                ) {
+
                                     echo "selected";
+
                                 }
+
                                 ?>
                             >
                                 Normal Post
                             </option>
 
 
+
                             <option
+                                value="Emergency Post"
+
                                 <?php
-                                if ($category == "Emergency Post") {
+
+                                if (
+                                    $selectedPost["post_type"] ==
+                                    "Emergency Post"
+                                ) {
+
                                     echo "selected";
+
                                 }
+
                                 ?>
                             >
                                 Emergency Post
@@ -469,9 +795,10 @@ if ($selectedPost == "2") {
                         </label>
 
 
-                        <textarea name="body"><?php
-                            echo htmlspecialchars($body);
-                        ?></textarea>
+                        <textarea
+                            name="body"
+                            required
+                        ><?php echo htmlspecialchars($selectedPost["description"]); ?></textarea>
 
 
 
@@ -482,9 +809,7 @@ if ($selectedPost == "2") {
 
                         <input
                             type="text"
-                            value="<?php
-                            echo htmlspecialchars($createdAt);
-                            ?>"
+                            value="<?php echo htmlspecialchars($selectedCreatedAt); ?>"
                             readonly
                         >
 
