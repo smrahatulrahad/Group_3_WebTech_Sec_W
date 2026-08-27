@@ -305,7 +305,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $connection->close();
 
 
-                
 
                 if ($created) {
 
