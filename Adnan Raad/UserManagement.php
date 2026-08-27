@@ -1,111 +1,359 @@
 <?php
+
 session_start();
 
+include "../Model/DatabaseConnection.php";
+
+
+/* =========================
+   LOGIN CHECK
+========================= */
 
 if (
     !isset($_SESSION["loggedIn"]) ||
     $_SESSION["loggedIn"] !== true
 ) {
+
     header("Location: ../utsa_Mazumdar/login.php");
     exit();
+
 }
+
+
+/* =========================
+   ROLE CHECK
+========================= */
+
+if (
+    !isset($_SESSION["userRole"]) ||
+    (
+        $_SESSION["userRole"] != "Admin" &&
+        $_SESSION["userRole"] != "Moderator"
+    )
+) {
+
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+
+}
+
+
+/* =========================
+   DATABASE
+========================= */
+
+$database = new DatabaseConnection();
+
+$connection = $database->openConnection();
+
+
+/* =========================
+   CURRENT USER
+========================= */
+
+$currentUserResult = $database->getUserById(
+    $connection,
+    $_SESSION["userId"]
+);
 
 
 if (
-    $_SESSION["userRole"] != "Admin" &&
-    $_SESSION["userRole"] != "Moderator"
+    !$currentUserResult ||
+    $currentUserResult->num_rows == 0
 ) {
+
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
     header("Location: ../utsa_Mazumdar/login.php");
     exit();
+
 }
 
 
-$userName = $_SESSION["userName"];
-$userRole = $_SESSION["userRole"];
+$currentUser = $currentUserResult->fetch_assoc();
+
+
+/* Disabled account cannot continue */
+
+if ($currentUser["status"] != "Active") {
+
+    $connection->close();
+
+    session_unset();
+    session_destroy();
+
+    header("Location: ../utsa_Mazumdar/login.php");
+    exit();
+
+}
+
+
+$userName = $currentUser["fullname"];
+$userRole = $currentUser["role"];
+
+
+/* Update login session information */
+
+$_SESSION["userName"] = $userName;
+$_SESSION["userEmail"] = $currentUser["email"];
+$_SESSION["userRole"] = $userRole;
+
+
+/* =========================
+   MESSAGE
+========================= */
 
 $message = "";
 
-if (!isset($_SESSION["registeredUsers"])) {
-    $_SESSION["registeredUsers"] = [];
-}
 
+/* =========================
+   APPLY CHANGES
+========================= */
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $selectedEmail = $_POST["selectedEmail"] ?? "";
-    $action = $_POST["action"] ?? "";
+    $selectedUsers =
+        $_POST["selectedUsers"] ?? array();
+
+    $actions =
+        $_POST["actions"] ?? array();
 
 
-    if ($selectedEmail == "") {
+    if (count($selectedUsers) == 0) {
 
-        $message = "Please select a user.";
+        $message =
+            "Please select at least one user.";
 
-    } elseif (
-        !isset($_SESSION["registeredUsers"][$selectedEmail])
-    ) {
+    }
+    else {
 
-        $message = "User account not found.";
+        $changedCount = 0;
 
-    } else {
-
-        $selectedRole =
-            $_SESSION["registeredUsers"][$selectedEmail]["role"];
+        $notAllowedCount = 0;
 
 
-        /* Moderator cannot modify Admin accounts */
+        foreach ($selectedUsers as $selectedUserId) {
+
+            $selectedUserId =
+                (int)$selectedUserId;
+
+
+            if ($selectedUserId <= 0) {
+
+                continue;
+
+            }
+
+
+            $action =
+                $actions[$selectedUserId] ?? "None";
+
+
+            if (
+                $action != "Enable" &&
+                $action != "Disable" &&
+                $action != "Remove"
+            ) {
+
+                continue;
+
+            }
+
+
+            /* Get selected user */
+
+            $selectedUserResult =
+                $database->getUserById(
+                    $connection,
+                    $selectedUserId
+                );
+
+
+            if (
+                !$selectedUserResult ||
+                $selectedUserResult->num_rows == 0
+            ) {
+
+                continue;
+
+            }
+
+
+            $selectedUser =
+                $selectedUserResult->fetch_assoc();
+
+
+            /* Moderator cannot modify Admin */
+
+            if (
+                $userRole == "Moderator" &&
+                $selectedUser["role"] == "Admin"
+            ) {
+
+                $notAllowedCount++;
+
+                continue;
+
+            }
+
+
+            /* Enable */
+
+            if ($action == "Enable") {
+
+                $updated =
+                    $database->updateUserStatus(
+                        $connection,
+                        $selectedUserId,
+                        "Active"
+                    );
+
+
+                if ($updated) {
+
+                    $changedCount++;
+
+                }
+
+            }
+
+
+            /* Disable */
+
+            elseif ($action == "Disable") {
+
+                $updated =
+                    $database->updateUserStatus(
+                        $connection,
+                        $selectedUserId,
+                        "Disabled"
+                    );
+
+
+                if ($updated) {
+
+                    $changedCount++;
+
+                }
+
+            }
+
+
+            /* Remove */
+
+            elseif ($action == "Remove") {
+
+                $deleted =
+                    $database->deleteUser(
+                        $connection,
+                        $selectedUserId
+                    );
+
+
+                if ($deleted) {
+
+                    $changedCount++;
+
+                }
+
+            }
+
+        }
+
+
+        /* Result message */
 
         if (
-            $userRole == "Moderator" &&
-            $selectedRole == "Admin"
+            $changedCount > 0 &&
+            $notAllowedCount == 0
+        ) {
+
+            $message =
+                "Changes saved successfully.";
+
+        }
+
+
+        elseif (
+            $changedCount > 0 &&
+            $notAllowedCount > 0
+        ) {
+
+            $message =
+                "Changes saved. Moderator cannot modify Admin accounts.";
+
+        }
+
+
+        elseif (
+            $changedCount == 0 &&
+            $notAllowedCount > 0
         ) {
 
             $message =
                 "Moderator cannot modify Admin accounts.";
 
-        } elseif ($action == "Enable") {
+        }
 
-            $_SESSION["registeredUsers"][$selectedEmail]["status"]
-                = "Active";
 
-            $message = "User enabled successfully.";
+        else {
 
-        } elseif ($action == "Disable") {
-
-            $_SESSION["registeredUsers"][$selectedEmail]["status"]
-                = "Disabled";
-
-            $message = "User disabled successfully.";
-
-        } elseif ($action == "Remove") {
-
-            unset(
-                $_SESSION["registeredUsers"][$selectedEmail]
-            );
-
-            $message = "User removed successfully.";
-
-        } else {
-
-            $message = "Please select an action.";
+            $message =
+                "No changes were selected.";
 
         }
 
     }
 
 }
+
+
+/* =========================
+   GET ALL USERS
+========================= */
+
+$usersResult =
+    $database->getAllUsers(
+        $connection
+    );
+
+
+$userCount = 0;
+
+
+if ($usersResult) {
+
+    $userCount =
+        $usersResult->num_rows;
+
+}
+
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>CivicLens - User Management</title>
-    <link rel="stylesheet" href="CSS/UserManagement.css">
+    <title>
+        CivicLens - User Management
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="CSS/UserManagement.css"
+    >
 
 </head>
 
@@ -113,15 +361,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 
 
+<!-- =========================
+     HEADER
+========================= -->
+
 <header class="header">
+
 
     <div>
 
-        <h1>CivicLens</h1>
+        <h1>
+            CivicLens
+        </h1>
 
-        <p>User Management</p>
+        <p>
+            User Management
+        </p>
 
     </div>
+
+
+    <a
+        href="AdminNewsfeed.php"
+        class="backTop"
+    >
+        Back to Dashboard
+    </a>
+
 
 </header>
 
@@ -130,59 +396,125 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="pageContainer">
 
 
+    <!-- =========================
+         SIDEBAR
+    ========================= -->
+
     <aside class="sidebar">
 
 
         <div class="userInfo">
 
+
             <div class="avatar">
-                <?php echo strtoupper(substr($userName, 0, 1)); ?>
+
+                <?php
+
+                echo htmlspecialchars(
+                    strtoupper(
+                        substr(
+                            $userName,
+                            0,
+                            1
+                        )
+                    )
+                );
+
+                ?>
+
             </div>
 
 
             <div>
 
-                <small>Signed in as</small>
+
+                <small>
+                    Signed in as
+                </small>
+
 
                 <strong>
-                    <?php echo htmlspecialchars($userName); ?>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $userName
+                    );
+
+                    ?>
+
                 </strong>
 
+
                 <span>
-                    <?php echo htmlspecialchars($userRole); ?>
+
+                    <?php
+
+                    echo htmlspecialchars(
+                        $userRole
+                    );
+
+                    ?>
+
                 </span>
 
+
             </div>
+
 
         </div>
 
 
+
+        <!-- =========================
+             SAME ADMIN MENU
+        ========================= -->
+
         <div class="menu">
+
 
             <a href="AdminNewsfeed.php">
                 Newsfeed
             </a>
 
-            <a href="../S.M. Rahatul Islam/ShowCases.php">
+
+            <a
+                href="../S.M. Rahatul Islam/ShowCases.php"
+            >
                 Case Status
             </a>
 
-            <a href="../utsa_Mazumdar/PostApproval.php">
+
+            <a
+                href="../utsa_Mazumdar/PostApproval.php"
+            >
                 Post Approval
             </a>
 
-            <a href="../utsa_Mazumdar/StaffManagement.php">
+
+            <a
+                href="../utsa_Mazumdar/StaffManagement.php"
+            >
                 Staff Management
             </a>
 
-            <a href="UserManagement.php" class="active">
+
+            <a
+                href="UserManagement.php"
+                class="active"
+            >
                 User Management
             </a>
+
 
         </div>
 
 
-       <a href="../utsa_Mazumdar/logout.php" class="logout-btn">
+
+        <a
+            href="../utsa_Mazumdar/logout.php"
+            class="logout"
+        >
             Logout
         </a>
 
@@ -191,14 +523,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
+    <!-- =========================
+         MAIN CONTENT
+    ========================= -->
+
     <main class="mainContent">
 
 
         <div class="pageTitle">
 
+
             <div>
 
-                <h2>User Management</h2>
+                <h2>
+                    User Management
+                </h2>
 
                 <p>
                     Manage registered CivicLens user accounts.
@@ -208,43 +547,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             <span class="roleBadge">
-                <?php echo htmlspecialchars($userRole); ?>
+
+                <?php
+
+                echo htmlspecialchars(
+                    $userRole
+                );
+
+                ?>
+
             </span>
+
 
         </div>
 
 
 
+        <!-- =========================
+             MESSAGE
+        ========================= -->
+
         <?php if ($message != "") { ?>
 
+
             <div class="message">
-                <?php echo htmlspecialchars($message); ?>
+
+                <?php
+
+                echo htmlspecialchars(
+                    $message
+                );
+
+                ?>
+
             </div>
+
 
         <?php } ?>
 
 
 
+        <!-- =========================
+             ROLE INFORMATION
+        ========================= -->
+
         <div class="infoBox">
+
 
             <?php if ($userRole == "Admin") { ?>
 
-                You are logged in as Admin. You can manage all user accounts.
+                You are logged in as Admin.
+                You can manage all user accounts.
 
             <?php } ?>
 
 
             <?php if ($userRole == "Moderator") { ?>
 
-                You are logged in as Moderator. You can manage users, but you cannot modify Admin accounts.
+                You are logged in as Moderator.
+                You can manage users, but you cannot
+                modify Admin accounts.
 
             <?php } ?>
+
 
         </div>
 
 
 
-        <form action="UserManagement.php" method="post">
+        <!-- =========================
+             USER MANAGEMENT FORM
+        ========================= -->
+
+        <form
+            action="UserManagement.php"
+            method="post"
+        >
 
 
             <div class="tableCard">
@@ -252,9 +630,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div class="tableTitle">
 
-                    <h3>Registered Users</h3>
 
-                    <span>6 Users</span>
+                    <h3>
+                        Registered Users
+                    </h3>
+
+
+                    <span>
+
+                        <?php
+
+                        echo $userCount;
+
+                        ?>
+
+                        <?php
+
+                        if ($userCount == 1) {
+
+                            echo " User";
+
+                        }
+                        else {
+
+                            echo " Users";
+
+                        }
+
+                        ?>
+
+                    </span>
+
 
                 </div>
 
@@ -268,21 +674,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         <thead>
 
+
                             <tr>
 
-                                <th>Select</th>
+                                <th>
+                                    Select
+                                </th>
 
-                                <th>ID</th>
+                                <th>
+                                    ID
+                                </th>
 
-                                <th>Name</th>
+                                <th>
+                                    Name
+                                </th>
 
-                                <th>Role</th>
+                                <th>
+                                    Role
+                                </th>
 
-                                <th>Status</th>
+                                <th>
+                                    Status
+                                </th>
 
-                                <th>Action</th>
+                                <th>
+                                    Action
+                                </th>
 
                             </tr>
+
 
                         </thead>
 
@@ -291,287 +711,267 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <tbody>
 
 
-                            <tr class="activeRow">
+                        <?php
 
-                                <td>
-                                    <input type="checkbox" name="user1">
-                                </td>
-
-                                <td>1</td>
-
-                                <td>Rahim Ahmed</td>
-
-                                <td>Citizen</td>
-
-                                <td>
-
-                                    <span class="status active">
-                                        Active
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <select name="action1">
-
-                                        <option>None</option>
-
-                                        <option>Approve</option>
-
-                                        <option>Enable</option>
-
-                                        <option>Disable</option>
-
-                                        <option>Remove</option>
-
-                                    </select>
-
-                                </td>
-
-                            </tr>
+                        if (
+                            $usersResult &&
+                            $usersResult->num_rows > 0
+                        ) {
 
 
-
-                            <tr class="pendingRow">
-
-                                <td>
-                                    <input type="checkbox" name="user2">
-                                </td>
-
-                                <td>2</td>
-
-                                <td>Samia Karim</td>
-
-                                <td>Journalist</td>
-
-                                <td>
-
-                                    <span class="status pending">
-                                        Pending
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <select name="action2">
-
-                                        <option>None</option>
-
-                                        <option>Approve</option>
-
-                                        <option>Enable</option>
-
-                                        <option>Disable</option>
-
-                                        <option>Remove</option>
-
-                                    </select>
-
-                                </td>
-
-                            </tr>
+                            while (
+                                $user =
+                                $usersResult->fetch_assoc()
+                            ) {
 
 
+                                /* Row and status class */
 
-                            <tr class="activeRow">
+                                if (
+                                    $user["status"] == "Active"
+                                ) {
 
-                                <td>
-                                    <input type="checkbox" name="user3">
-                                </td>
+                                    $rowClass =
+                                        "activeRow";
 
-                                <td>3</td>
+                                    $statusClass =
+                                        "active";
 
-                                <td>Tanvir Hasan</td>
+                                }
+                                else {
 
-                                <td>Police</td>
+                                    $rowClass =
+                                        "disabledRow";
+
+                                    $statusClass =
+                                        "disabled";
+
+                                }
+
+
+                                /* Moderator restriction */
+
+                                $notAllowed = false;
+
+
+                                if (
+                                    $userRole == "Moderator" &&
+                                    $user["role"] == "Admin"
+                                ) {
+
+                                    $notAllowed = true;
+
+                                }
+
+                        ?>
+
+
+                            <tr
+                                class="<?php
+                                    echo htmlspecialchars(
+                                        $rowClass
+                                    );
+                                ?>"
+                            >
+
+
+                                <!-- SELECT -->
 
                                 <td>
 
-                                    <span class="status active">
-                                        Active
-                                    </span>
 
-                                </td>
-
-                                <td>
-
-                                    <select name="action3">
-
-                                        <option>None</option>
-
-                                        <option>Approve</option>
-
-                                        <option>Enable</option>
-
-                                        <option>Disable</option>
-
-                                        <option>Remove</option>
-
-                                    </select>
-
-                                </td>
-
-                            </tr>
+                                    <?php if (!$notAllowed) { ?>
 
 
-
-                            <tr class="disabledRow">
-
-                                <td>
-                                    <input type="checkbox" name="user4">
-                                </td>
-
-                                <td>4</td>
-
-                                <td>Nabila Islam</td>
-
-                                <td>Citizen</td>
-
-                                <td>
-
-                                    <span class="status disabled">
-                                        Disabled
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <select name="action4">
-
-                                        <option>None</option>
-
-                                        <option>Approve</option>
-
-                                        <option>Enable</option>
-
-                                        <option>Disable</option>
-
-                                        <option>Remove</option>
-
-                                    </select>
-
-                                </td>
-
-                            </tr>
+                                        <input
+                                            type="checkbox"
+                                            name="selectedUsers[]"
+                                            value="<?php
+                                                echo (int)$user["id"];
+                                            ?>"
+                                        >
 
 
-
-                            <tr class="activeRow">
-
-                                <td>
-                                    <input type="checkbox" name="user5">
-                                </td>
-
-                                <td>5</td>
-
-                                <td>Farhan Kabir</td>
-
-                                <td>Moderator</td>
-
-                                <td>
-
-                                    <span class="status active">
-                                        Active
-                                    </span>
-
-                                </td>
-
-                                <td>
-
-                                    <select name="action5">
-
-                                        <option>None</option>
-
-                                        <option>Approve</option>
-
-                                        <option>Enable</option>
-
-                                        <option>Disable</option>
-
-                                        <option>Remove</option>
-
-                                    </select>
-
-                                </td>
-
-                            </tr>
+                                    <?php } else { ?>
 
 
+                                        <input
+                                            type="checkbox"
+                                            disabled
+                                        >
 
-                            <tr class="activeRow">
-
-                                <td>
-
-
-                                    <?php if ($userRole == "Admin") { ?>
-
-                                        <input type="checkbox" name="user6">
-
-                                    <?php } ?>
-
-
-                                    <?php if ($userRole == "Moderator") { ?>
-
-                                        <input type="checkbox" disabled>
 
                                     <?php } ?>
 
 
                                 </td>
 
-                                <td>6</td>
 
-                                <td>Mahmud Rahman</td>
 
-                                <td>Admin</td>
+                                <!-- ID -->
 
                                 <td>
 
-                                    <span class="status active">
-                                        Active
-                                    </span>
+                                    <?php
+
+                                    echo (int)$user["id"];
+
+                                    ?>
 
                                 </td>
 
+
+
+                                <!-- NAME -->
+
+                                <td>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $user["fullname"]
+                                    );
+
+                                    ?>
+
+                                </td>
+
+
+
+                                <!-- ROLE -->
+
+                                <td>
+
+                                    <?php
+
+                                    echo htmlspecialchars(
+                                        $user["role"]
+                                    );
+
+                                    ?>
+
+                                </td>
+
+
+
+                                <!-- STATUS -->
+
                                 <td>
 
 
-                                    <?php if ($userRole == "Admin") { ?>
+                                    <span
+                                        class="status <?php
+                                            echo htmlspecialchars(
+                                                $statusClass
+                                            );
+                                        ?>"
+                                    >
 
-                                        <select name="action6">
+                                        <?php
 
-                                            <option>None</option>
+                                        echo htmlspecialchars(
+                                            $user["status"]
+                                        );
 
-                                            <option>Approve</option>
+                                        ?>
 
-                                            <option>Enable</option>
+                                    </span>
 
-                                            <option>Disable</option>
 
-                                            <option>Remove</option>
+                                </td>
+
+
+
+                                <!-- ACTION -->
+
+                                <td>
+
+
+                                    <?php if (!$notAllowed) { ?>
+
+
+                                        <select
+                                            name="actions[<?php
+                                                echo (int)$user["id"];
+                                            ?>]"
+                                        >
+
+
+                                            <option value="None">
+                                                None
+                                            </option>
+
+
+                                            <option value="Enable">
+                                                Enable
+                                            </option>
+
+
+                                            <option value="Disable">
+                                                Disable
+                                            </option>
+
+
+                                            <option value="Remove">
+                                                Remove
+                                            </option>
+
 
                                         </select>
 
-                                    <?php } ?>
 
+                                    <?php } else { ?>
 
-                                    <?php if ($userRole == "Moderator") { ?>
 
                                         <select disabled>
 
-                                            <option>Not Allowed</option>
+                                            <option>
+                                                Not Allowed
+                                            </option>
 
                                         </select>
+
 
                                     <?php } ?>
 
 
                                 </td>
 
+
                             </tr>
+
+
+                        <?php
+
+                            }
+
+                        }
+                        else {
+
+                        ?>
+
+
+                            <tr>
+
+
+                                <td
+                                    colspan="6"
+                                    style="text-align: center;"
+                                >
+
+                                    No registered users found.
+
+                                </td>
+
+
+                            </tr>
+
+
+                        <?php
+
+                        }
+
+                        ?>
 
 
                         </tbody>
@@ -587,15 +987,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
+            <!-- =========================
+                 BUTTONS
+            ========================= -->
+
             <div class="bottomButtons">
 
-                <button type="submit" class="applyButton">
+
+                <button
+                    type="submit"
+                    class="applyButton"
+                >
                     Apply Changes
                 </button>
 
-                <a href="AdminNewsfeed.php" class="backButton">
+
+                <a
+                    href="AdminNewsfeed.php"
+                    class="backButton"
+                >
                     Back
                 </a>
+
 
             </div>
 
@@ -607,6 +1020,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 </div>
+
+
+<?php
+
+$connection->close();
+
+?>
 
 
 </body>
