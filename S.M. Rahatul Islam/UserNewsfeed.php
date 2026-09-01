@@ -125,15 +125,16 @@ $postCount = count($posts);
         CivicLens - User Newsfeed
     </title>
 
-    <link
+    <!-- <link
         rel="stylesheet"
         href="CSS/UserNewsfeed.css"
-    >
+    > -->
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
 
-<body>
+<body class="newsfeedPage">
 
 
 <header class="header">

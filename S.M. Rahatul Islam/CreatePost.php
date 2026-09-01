@@ -348,15 +348,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <title>CivicLens - Create Post</title>
 
-    <link
+    <!-- <link
         rel="stylesheet"
         href="CSS/CreatePost.css"
-    >
+    > -->
+
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
 
-<body>
+<body class="createPostPage">
 
 
 <header class="header">

@@ -216,15 +216,16 @@ $caseCount = count($cases);
         CivicLens - Show Cases
     </title>
 
-    <link
+    <!-- <link
         rel="stylesheet"
         href="CSS/ShowCases.css"
-    >
+    > -->
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
 
-<body>
+<body class="showCasesPage">
 
 
 <header class="header">

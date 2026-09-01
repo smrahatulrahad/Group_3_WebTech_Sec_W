@@ -439,13 +439,14 @@ elseif ($userRole == "Police") {
 
     <title>CivicLens - Edit Profile</title>
 
-    <link
+    <!-- <link
         rel="stylesheet"
         href="CSS/EditProfile.css"
-    >
+    > -->
+    <link rel="stylesheet" href="CSS/style.css">
 </head>
 
-<body>
+<body class="editProfilePage">
 
 <header class="header">
 

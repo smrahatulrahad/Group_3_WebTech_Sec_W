@@ -281,15 +281,17 @@ $connection->close();
         CivicLens - Pending Posts
     </title>
 
-    <link
+    <!-- <link
         rel="stylesheet"
         href="CSS/PendingPosts.css"
-    >
+    > -->
+
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
 
-<body>
+<body class="pendingPostsPage">
 
 
 <header class="header">

@@ -30,12 +30,13 @@ $userName = $_SESSION["userName"];
 
     <title>CivicLens - Donation</title>
 
-    <link rel="stylesheet" href="CSS/Donation.css">
+    <!-- <link rel="stylesheet" href="CSS/Donation.css"> -->
+     <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
 
-<body>
+<body class="donationPage">
 
 
 <header class="header">

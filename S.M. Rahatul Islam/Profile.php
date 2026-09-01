@@ -161,15 +161,17 @@ elseif ($userRole == "Police") {
         CivicLens - Profile
     </title>
 
-    <link
+    <!-- <link
         rel="stylesheet"
         href="CSS/Profile.css"
-    >
+    > -->
+
+    <link rel="stylesheet" href="CSS/style.css">
 
 </head>
 
 
-<body>
+<body class="profilePage">
 
 
 <header class="header">
