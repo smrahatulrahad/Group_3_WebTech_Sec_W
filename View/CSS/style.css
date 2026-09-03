@@ -1,0 +1,558 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+}
+
+
+
+/* ==============================
+   REGISTRATION PAGE
+   ============================== */
+
+.register-window {
+    width: 100%;
+    min-height: 100vh;
+    background-color: white;
+}
+
+.register-header {
+    width: 100%;
+    height: 70px;
+
+    background-color: #222;
+    color: white;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 30px;
+
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.register-content {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+
+    display: flex;
+}
+
+
+/* LEFT SIDE */
+
+.left-side {
+    width: 30%;
+
+    background-color: #333;
+    color: white;
+
+    padding: 50px 35px;
+}
+
+.left-side h1 {
+    font-size: 35px;
+    margin-bottom: 20px;
+}
+
+.left-side p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 35px;
+}
+
+.left-side h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+.role-box {
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.role-box input {
+    margin-right: 8px;
+}
+
+.choose-message {
+    font-size: 14px !important;
+    margin-top: 30px;
+}
+
+
+/* RIGHT SIDE */
+
+.right-side {
+    width: 70%;
+
+    padding: 40px 50px;
+
+    background-color: white;
+
+    overflow-y: auto;
+}
+
+.right-side h1 {
+    font-size: 30px;
+    margin-bottom: 25px;
+}
+
+.right-side h2 {
+    font-size: 20px;
+    margin-top: 25px;
+    margin-bottom: 15px;
+}
+
+
+/* FORM */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns: 200px 1fr;
+
+    gap: 12px 20px;
+
+    margin-bottom: 20px;
+}
+
+.form-grid span {
+    font-size: 16px;
+
+    display: flex;
+    align-items: center;
+}
+
+.form-grid input {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #aaa;
+
+    border-radius: 4px;
+
+    font-size: 15px;
+}
+
+.form-grid input:focus {
+    outline: none;
+    border-color: #333;
+}
+
+
+/* ROLE FIELDS */
+
+.role-fields {
+    margin-top: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+
+/* BUTTONS */
+
+.buttons {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 15px;
+
+    margin-top: 30px;
+}
+
+.back {
+    padding: 12px 25px;
+
+    background-color: #ddd;
+
+    color: #222;
+
+    text-decoration: none;
+
+    border-radius: 5px;
+}
+
+.back:hover {
+    background-color: #bbb;
+}
+
+.next {
+    padding: 12px 25px;
+
+    background-color: #333;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+}
+
+.next:hover {
+    background-color: #555;
+}
+
+
+/* ERROR */
+
+.login_error {
+    color: red;
+
+    font-size: 14px;
+
+    margin-top: 5px;
+}
+
+
+/* ==============================
+   LOGIN PAGE
+   ============================== */
+
+.login_window {
+    width: 100%;
+    min-height: 100vh;
+
+    background-color: white;
+}
+
+.login_header {
+    width: 100%;
+    height: 70px;
+
+    background-color: #222;
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 30px;
+
+    font-size: 25px;
+
+    font-weight: bold;
+}
+
+.login_content {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    background-color: #f2f2f2;
+
+    padding: 30px;
+}
+
+#login_title {
+    font-size: 35px;
+
+    margin-bottom: 15px;
+
+    text-align: center;
+}
+
+#login_subtitle {
+    font-size: 16px;
+
+    margin-bottom: 30px;
+
+    text-align: center;
+}
+
+.login_form_box {
+    width: 450px;
+
+    background-color: white;
+
+    padding: 35px;
+
+    border-radius: 8px;
+
+    box-shadow: 0 0 10px #aaa;
+}
+
+
+/* LOGIN TABLE */
+
+.login_table {
+    width: 100%;
+}
+
+.login_table td {
+    padding: 10px;
+}
+
+.login_table td:first-child {
+    width: 40%;
+
+    font-weight: bold;
+}
+
+.login_table input {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #aaa;
+
+    border-radius: 4px;
+}
+
+.login_table input:focus {
+    outline: none;
+
+    border-color: #333;
+}
+
+
+/* LOGIN BUTTONS */
+
+.login_buttons {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    margin-top: 20px;
+}
+
+.login_button {
+    padding: 11px 25px;
+
+    background-color: #333;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+}
+
+.login_button:hover {
+    background-color: #555;
+}
+
+.signup_button {
+    padding: 11px 25px;
+
+    background-color: #ddd;
+
+    color: #222;
+
+    text-decoration: none;
+
+    border-radius: 5px;
+}
+
+.signup_button:hover {
+    background-color: #bbb;
+}
+
+
+
+/* FORGOT PASSWORD */
+
+.forgot_link {
+    display: block;
+
+    text-align: center;
+
+    margin-top: 25px;
+
+    color: #333;
+
+    text-decoration: none;
+}
+
+.forgot_link:hover {
+    text-decoration: underline;
+}
+
+
+/* ==============================
+   RESET PASSWORD
+   ============================== */
+
+.window_reset {
+    width: 100%;
+
+    min-height: 100vh;
+
+    background-color: white;
+}
+
+.header_reset {
+    width: 100%;
+
+    height: 70px;
+
+    background-color: #222;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    padding-left: 30px;
+
+    font-size: 25px;
+
+    font-weight: bold;
+}
+
+.reset_content {
+    width: 100%;
+
+    min-height: calc(100vh - 70px);
+
+    display: flex;
+}
+
+
+/* RESET LEFT */
+
+.reset_left {
+    width: 30%;
+
+    background-color: #333;
+
+    color: white;
+
+    padding: 60px 40px;
+}
+
+.reset_left h1 {
+    font-size: 35px;
+
+    margin-bottom: 25px;
+}
+
+.reset_left p {
+    font-size: 16px;
+
+    line-height: 1.6;
+
+    margin-bottom: 20px;
+}
+
+
+/* RESET RIGHT */
+
+.reset_right {
+    width: 70%;
+
+    padding: 50px;
+
+    background-color: white;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+}
+
+.reset_right h1 {
+    font-size: 30px;
+
+    margin-bottom: 25px;
+}
+
+
+/* RESET TABLE */
+
+.reset_table {
+    width: 100%;
+
+    max-width: 750px;
+}
+
+.reset_table td {
+    padding: 10px;
+}
+
+.reset_table td:first-child {
+    width: 250px;
+
+    font-weight: bold;
+}
+
+.reset_table input {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #aaa;
+
+    border-radius: 4px;
+}
+
+.reset_table input:focus {
+    outline: none;
+
+    border-color: #333;
+}
+
+.reset_table h2 {
+    margin-top: 20px;
+
+    margin-bottom: 10px;
+
+    font-size: 20px;
+}
+
+
+/* RESET ERROR */
+
+.reset_error {
+    color: red;
+
+    margin-bottom: 15px;
+
+    font-size: 14px;
+}
+
+
+/* RESET BUTTON */
+
+.reset_btn {
+    padding: 12px 25px;
+
+    background-color: #333;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+}
+
+.reset_btn:hover {
+    background-color: #555;
+}
